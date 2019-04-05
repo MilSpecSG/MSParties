@@ -1,0 +1,13 @@
+plugins {
+    id 'org.spongepowered.plugin' version '0.8.1'
+}
+
+group = pluginGroup
+version = pluginVersion
+
+dependencies {
+    compile 'org.spongepowered:spongeapi:7.1.0-SNAPSHOT'
+    compile 'com.zaxxer:HikariCP:2.6.1'
+}
+
+sponge.plugin.id = pluginId

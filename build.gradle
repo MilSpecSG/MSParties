@@ -7,7 +7,10 @@ version = pluginVersion
 
 dependencies {
     compile 'org.spongepowered:spongeapi:7.1.0-SNAPSHOT'
-    compile 'com.zaxxer:HikariCP:2.6.1'
+    compile 'org.mongodb:mongodb-driver:3.10.2'
+    compile 'org.mongodb.morphia:morphia:1.3.2'
+    implementation 'com.zaxxer:HikariCP:2.6.1'
+    implementation 'org.mariadb.jdbc:mariadb-java-client:2.1.2'
 }
 
 sponge.plugin.id = pluginId

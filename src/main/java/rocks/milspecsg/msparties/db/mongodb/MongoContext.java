@@ -12,14 +12,14 @@ import rocks.milspecsg.msparties.model.core.Rank;
 
 public class MongoContext {
 
-    public final MongoClient mongoClient;
     public final Datastore datastore;
 
     @Inject
     public MongoContext() {
-        MongoClientURI uri = new MongoClientURI("mongodb://localhost:27017/",
-                MongoClientOptions.builder().sslEnabled(true));
-        mongoClient = new MongoClient(uri);
+//        MongoClientURI uri = new MongoClientURI("mongodb://localhost:27017/",
+//                MongoClientOptions.builder().sslEnabled(true));
+        MongoClientURI uri = new MongoClientURI("mongodb://localhost:27017/");
+        MongoClient mongoClient = new MongoClient(uri);
 
         Morphia morphia = new Morphia();
         morphia.map(

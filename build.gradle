@@ -5,12 +5,29 @@ plugins {
 group = pluginGroup
 version = pluginVersion
 
+configurations {
+    extraLibs
+}
+
+
 dependencies {
-    compile 'org.spongepowered:spongeapi:7.1.0-SNAPSHOT'
-    compile 'org.mongodb:mongodb-driver:3.10.2'
-    compile 'org.mongodb.morphia:morphia:1.3.2'
+    implementation 'org.spongepowered:spongeapi:7.1.0-SNAPSHOT'
+    implementation 'org.mongodb:mongodb-driver:3.10.2'
+    implementation 'org.mongodb.morphia:morphia:1.3.2'
     implementation 'com.zaxxer:HikariCP:2.6.1'
     implementation 'org.mariadb.jdbc:mariadb-java-client:2.1.2'
+
+    extraLibs group: 'org.mongodb', name: 'mongodb-driver', version: '3.10.2'
+    extraLibs group: 'org.mongodb.morphia', name: 'morphia', version: '1.3.2'
+
+    //testCompile group: 'junit', name: 'junit', version: '+'
+    configurations.compile.extendsFrom(configurations.extraLibs)
+}
+
+jar {
+    from {
+        configurations.extraLibs.collect { it.isDirectory() ? it : zipTree(it) }
+    }
 }
 
 sponge.plugin.id = pluginId

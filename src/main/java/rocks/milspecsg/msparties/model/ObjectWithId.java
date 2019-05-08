@@ -1,10 +1,11 @@
 package rocks.milspecsg.msparties.model;
 
-public interface ObjectWithId<TKey, TDateTime> {
+import java.util.Calendar;
+
+public interface ObjectWithId<TKey> {
 
     TKey getId();
     void setId(TKey id);
 
-    TDateTime getUpdatedUtc();
-    void setUpdatedUtc(TDateTime updatedUtc);
+    Calendar getUpdatedUtc();
 }

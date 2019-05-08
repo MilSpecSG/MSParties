@@ -45,25 +45,25 @@ public class MariaDal {
         return ds.getConnection();
     }
 
-    public List<Party> fetchData() throws SQLException {
-        String SQL_QUERY = "select * from msparties.t";
-        List<Party> parties = null;
-        try (Connection con = ds.getConnection();
-             PreparedStatement pst = con.prepareStatement(SQL_QUERY);
-             ResultSet rs = pst.executeQuery();) {
-            parties = new ArrayList<>();
-            Party party;
-            while (rs.next()) {
-                party = new Party();
-
-                party.setMaxSize(rs.getInt("empno"));
-                parties.add(party);
-            }
-        } catch (InvalidMaxSizeException e) {
-            e.printStackTrace();
-        }
-        return parties;
-    }
+//    public List<Party> fetchData() throws SQLException {
+//        String SQL_QUERY = "select * from msparties.t";
+//        List<Party> parties = null;
+//        try (Connection con = ds.getConnection();
+//             PreparedStatement pst = con.prepareStatement(SQL_QUERY);
+//             ResultSet rs = pst.executeQuery();) {
+//            parties = new ArrayList<>();
+//            Party party;
+//            while (rs.next()) {
+//                party = new Party();
+//
+//                party.maxSize = (rs.getInt("empno"));
+//                parties.add(party);
+//            }
+//        } catch (InvalidMaxSizeException e) {
+//            e.printStackTrace();
+//        }
+//        return parties;
+//    }
 
 
     public CompletableFuture<Boolean> insertOneAsync(String database, String collection) {

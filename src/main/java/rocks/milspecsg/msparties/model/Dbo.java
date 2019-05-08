@@ -5,14 +5,15 @@ import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
 import org.mongodb.morphia.annotations.Property;
 
+import java.util.Calendar;
 import java.util.Date;
 
-public abstract class Dbo implements ObjectWithId<ObjectId, Date> {
+public abstract class Dbo implements ObjectWithId<ObjectId> {
 
     @Id
     private ObjectId id;
 
-    private Date updatedUtc;
+    private Calendar updatedUtc;
 
     public ObjectId getId() {
         return id;
@@ -22,11 +23,7 @@ public abstract class Dbo implements ObjectWithId<ObjectId, Date> {
         this.id = id;
     }
 
-    public Date getUpdatedUtc() {
+    public Calendar getUpdatedUtc() {
         return updatedUtc;
-    }
-
-    public void setUpdatedUtc(Date updatedUtc) {
-        this.updatedUtc = updatedUtc;
     }
 }

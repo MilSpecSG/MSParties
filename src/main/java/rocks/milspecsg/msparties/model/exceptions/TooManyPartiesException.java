@@ -2,7 +2,7 @@ package rocks.milspecsg.msparties.model.exceptions;
 
 public class TooManyPartiesException extends Exception {
 
-    public TooManyPartiesException(String message) {
+    public TooManyPartiesException() {
         super("Too many parties");
     }
 }

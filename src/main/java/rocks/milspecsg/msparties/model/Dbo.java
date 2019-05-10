@@ -3,6 +3,7 @@ package rocks.milspecsg.msparties.model;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import org.mongodb.morphia.annotations.Id;
+import org.mongodb.morphia.annotations.PrePersist;
 import org.mongodb.morphia.annotations.Property;
 
 import java.util.Calendar;
@@ -13,7 +14,8 @@ public abstract class Dbo implements ObjectWithId<ObjectId> {
     @Id
     private ObjectId id;
 
-    private Calendar updatedUtc;
+    private Date updatedUtc;
+
 
     public ObjectId getId() {
         return id;
@@ -23,7 +25,10 @@ public abstract class Dbo implements ObjectWithId<ObjectId> {
         this.id = id;
     }
 
-    public Calendar getUpdatedUtc() {
+    public Date getUpdatedUtc() {
         return updatedUtc;
     }
+
+    @PrePersist
+    void prePersist() {updatedUtc = new Date();}
 }

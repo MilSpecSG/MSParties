@@ -15,14 +15,7 @@ import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.text.Text;
-import rocks.milspecsg.msparties.commands.HelpCommand;
-import rocks.milspecsg.msparties.commands.PartyCreateCommand;
-import rocks.milspecsg.msparties.commands.PartyDisbandCommand;
-
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import rocks.milspecsg.msparties.commands.party.*;
 
 @Plugin(id = PluginInfo.Id, name = PluginInfo.Name, version = PluginInfo.Version, description = PluginInfo.Description, authors = PluginInfo.Authors, url = PluginInfo.Url)
 public class MSParties {
@@ -36,7 +29,7 @@ public class MSParties {
     @DefaultConfig(sharedRoot = true)
     private ConfigurationLoader<CommentedConfigurationNode> configManager;
 
-    public static Map<List<String>, CommandSpec> subCommands = new HashMap<>();
+    public static MSParties plugin = null;
 
     @Listener
     public void onServerStart(GameStartedServerEvent event) {
@@ -44,6 +37,7 @@ public class MSParties {
 
     @Listener
     public void onServerInitialization(GameInitializationEvent event) {
+        plugin = this;
         Sponge.getServer().getConsole().sendMessage(Text.of(PluginInfo.PluginPrefix, "Hello!"));
         Sponge.getServer().getConsole().sendMessage(Text.of(PluginInfo.PluginPrefix, "Loading..."));
         initServices();
@@ -52,48 +46,12 @@ public class MSParties {
         Sponge.getServer().getConsole().sendMessage(Text.of(PluginInfo.PluginPrefix, "Finished"));
     }
 
-
     private void initServices() {
         injector = Guice.createInjector(new SpongeInjector());
     }
 
     private void initCommands() {
-        Map<List<String>, CommandSpec> subCommands = new HashMap<>();
-
-        subCommands.put(Arrays.asList("create", "c"), CommandSpec.builder()
-                .description(Text.of("Create a party"))
-                .permission(PluginPermissions.CREATE_COMMAND)
-                .arguments(
-                        GenericArguments.string(Text.of("name"))
-                )
-                .executor(injector.getInstance(PartyCreateCommand.class))
-                .build());
-
-        subCommands.put(Arrays.asList("join", "j"), CommandSpec.builder()
-                .description(Text.of("Create a party"))
-                .permission(PluginPermissions.JOIN_COMMAND)
-                .arguments(
-                        GenericArguments.string(Text.of("name"))
-                )
-                .executor(injector.getInstance(PartyCreateCommand.class))
-                .build());
-
-        subCommands.put(Arrays.asList("disband"), CommandSpec.builder()
-                .description(Text.of("Disband party"))
-                .permission(PluginPermissions.DISBAND_COMMAND)
-                .executor(injector.getInstance(PartyDisbandCommand.class))
-                .build());
-
-        //Build all commands
-        CommandSpec mainCommand = CommandSpec.builder()
-                .description(Text.of("Displays all available commands"))
-                .executor(injector.getInstance(HelpCommand.class))
-                .children(subCommands)
-                .build();
-
-        //Register commands
-        Sponge.getCommandManager().register(this, mainCommand, "msparties", "msp", "parties", "p", "party");
-        MSParties.subCommands = subCommands;
+        injector.getInstance(PartyCommandManager.class).register(this);
     }
 
 

@@ -1,6 +1,7 @@
 package rocks.milspecsg.msparties.model.core;
 
 
+import org.bson.types.ObjectId;
 import org.mongodb.morphia.annotations.Entity;
 import rocks.milspecsg.msparties.model.Dbo;
 import rocks.milspecsg.msparties.model.exceptions.InvalidMaxSizeException;
@@ -17,6 +18,7 @@ public class Party extends Dbo {
     public String name;
     public int maxSize;
     public UUID leaderUUID;
-    public List<Member> members;
+    public List<UUID> memberUUIDs; //todo: check if array is better
     public List<Rank> ranks;
+    public boolean inviteOnly;
 }

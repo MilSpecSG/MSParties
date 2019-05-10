@@ -30,7 +30,7 @@ public class MariaDal {
         //config.setAutoCommit(false);
         ds = new HikariDataSource(config);
 //        ds.setJdbcUrl("jdbc:mariadb://localhost:3306/db");
-//        ds.addDataSourceProperty("user", "root");
+//        ds.addDataSourceProperty("kd", "root");
 //        ds.addDataSourceProperty("password", "myPassword");
 
 

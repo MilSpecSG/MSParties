@@ -5,5 +5,6 @@ public abstract class PluginPermissions {
     public static final String CREATE_COMMAND = "msparties.command.create.base";
     public static final String DISBAND_COMMAND = "msparties.command.remove.base";
     public static final String JOIN_COMMAND = "msparties.command.join.base";
+    public static final String INFO_COMMAND = "msparties.command.info.base";
 
 }

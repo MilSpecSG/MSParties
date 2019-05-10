@@ -1,4 +1,4 @@
-package rocks.milspecsg.msparties.commands;
+package rocks.milspecsg.msparties.commands.party;
 
 import com.google.common.collect.Lists;
 import org.spongepowered.api.Sponge;
@@ -21,11 +21,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
-public class HelpCommand implements CommandExecutor {
+public class PartyHelpCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource source, CommandContext args) throws CommandException {
-        Map<List<String>, CommandSpec> commands = MSParties.subCommands;
+        Map<List<String>, CommandSpec> commands = PartyCommandManager.subCommands;
 
         List<Text> helpList = Lists.newArrayList();
 
@@ -57,7 +57,7 @@ public class HelpCommand implements CommandExecutor {
         Optional<PaginationService> paginationService = Sponge.getServiceManager().provide(PaginationService.class);
         if (!paginationService.isPresent()) return null;
         PaginationList.Builder paginationBuilder = paginationService.get().builder().title(Text.of(TextColors.GOLD, "MSParties - MilspecSG")).padding(Text.of(TextColors.DARK_GREEN, "-")).contents(helpList).linesPerPage(10);
-        paginationBuilder.sendTo(source);
+        paginationBuilder.build().sendTo(source);
         return CommandResult.success();
     }
 }

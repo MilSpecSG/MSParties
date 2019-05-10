@@ -8,6 +8,7 @@ import rocks.milspecsg.msparties.model.results.UpdateResult;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
 public interface PartyRepository extends Repository<Party> {
@@ -19,7 +20,7 @@ public interface PartyRepository extends Repository<Party> {
      * @return {@code Optional} wrapped {@code Party}
      * @throws InvalidNameException When name does not successfully pass language filter
      */
-    CompletableFuture<Optional<Party>> createParty(String name, User leader) throws InvalidNameException;
+    CompletableFuture<Optional<? extends Party>> createParty(String name, User leader) throws InvalidNameException;
 
     CompletableFuture<UpdateResult> disbandParty();
 
@@ -29,15 +30,20 @@ public interface PartyRepository extends Repository<Party> {
 
     CompletableFuture<UpdateResult> renameParty(String name, Party party) throws IllegalNameException, NotInPartyException;
 
-    CompletableFuture<UpdateResult> invitePlayerToParty(User user) throws NotInPartyException;
+    CompletableFuture<UpdateResult> inviteUser(User user) throws NotInPartyException;
 
-    CompletableFuture<Optional<Party>> getOneAsync(String name) throws PartyNotFoundException;
-
-    CompletableFuture<Optional<Party>> getOneAsync(User leader) throws PartyNotFoundException;
+    CompletableFuture<List<? extends Party>> getAll(String name);
+    CompletableFuture<Optional<? extends Party>> getOne(String name);
 
     /**
-     * @param user to check
-     * @return a list with user's parties. Empty if none
+     * @param userUUID to check
+     * @return a list with users's parties. Empty if none
      */
-    CompletableFuture<List<Party>> getParties(User user);
+    CompletableFuture<List<? extends Party>> getAll(UUID userUUID);
+
+    CompletableFuture<Optional<? extends Party>> getOne(UUID userUUID);
+
+
+
+   // CompletableFuture<List<Party>> getParties(User user);
 }

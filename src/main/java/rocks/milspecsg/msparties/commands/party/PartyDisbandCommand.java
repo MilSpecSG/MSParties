@@ -1,4 +1,4 @@
-package rocks.milspecsg.msparties.commands;
+package rocks.milspecsg.msparties.commands.party;
 
 import com.google.inject.Inject;
 import org.spongepowered.api.command.CommandException;

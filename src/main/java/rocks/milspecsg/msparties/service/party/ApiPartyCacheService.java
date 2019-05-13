@@ -23,8 +23,7 @@ public class ApiPartyCacheService implements PartyCacheService {
     public ApiPartyCacheService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
         partyCache = new HashMap<>();
-
-        Integer interval = configurationService.getConfigInteger(ConfigKeys.CACHE_INVALIDATION_INTERVAL_SECONDS);
+        Integer interval = configurationService.getConfigInteger(ConfigKeys.CACHE_INVALIDATION_INTERVAL_SECONDS_INT);
         Task.builder().interval(interval, TimeUnit.SECONDS).execute(task).submit(MSParties.plugin);
     }
 
@@ -32,7 +31,7 @@ public class ApiPartyCacheService implements PartyCacheService {
      * Cache invalidation task
      */
     private Runnable task = () -> {
-        Integer timeoutSeconds = configurationService.getConfigInteger(ConfigKeys.CACHE_INVALIDATION_TIMOUT_SECONDS);
+        Integer timeoutSeconds = configurationService.getConfigInteger(ConfigKeys.CACHE_INVALIDATION_TIMOUT_SECONDS_INT);
 
         List<Party> toRemove = new ArrayList<>();
         for (Party party : getParties()) {

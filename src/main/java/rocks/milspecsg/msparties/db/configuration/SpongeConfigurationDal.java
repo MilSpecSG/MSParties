@@ -6,7 +6,6 @@ import ninja.leaping.configurate.commented.CommentedConfigurationNode;
 import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.spongepowered.api.config.DefaultConfig;
 import rocks.milspecsg.msparties.db.configuration.ConfigurationDal;
-import sun.reflect.generics.reflectiveObjects.NotImplementedException;
 
 import java.io.IOException;
 
@@ -24,7 +23,7 @@ public class SpongeConfigurationDal implements ConfigurationDal {
 
     @Override
     public ConfigurationNode getBaseNode() {
-        if (baseNode==null) throw new NotImplementedException();
+        if (baseNode==null) return null;
         return baseNode;
     }
 

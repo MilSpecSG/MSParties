@@ -15,6 +15,8 @@ import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.text.Text;
+import rocks.milspecsg.msparties.api.config.ConfigurationService;
+import rocks.milspecsg.msparties.api.party.PartyCacheService;
 import rocks.milspecsg.msparties.commands.party.*;
 
 @Plugin(id = PluginInfo.Id, name = PluginInfo.Name, version = PluginInfo.Version, description = PluginInfo.Description, authors = PluginInfo.Authors, url = PluginInfo.Url)
@@ -23,13 +25,11 @@ public class MSParties {
     @Inject
     private Logger logger;
 
-    public static Injector injector;
-
     @Inject
-    @DefaultConfig(sharedRoot = true)
-    private ConfigurationLoader<CommentedConfigurationNode> configManager;
+    public Injector spongeRootInjector;
 
     public static MSParties plugin = null;
+    public static Injector injector = null;
 
     @Listener
     public void onServerStart(GameStartedServerEvent event) {
@@ -41,13 +41,20 @@ public class MSParties {
         Sponge.getServer().getConsole().sendMessage(Text.of(PluginInfo.PluginPrefix, "Hello!"));
         Sponge.getServer().getConsole().sendMessage(Text.of(PluginInfo.PluginPrefix, "Loading..."));
         initServices();
+        initSingletonServices();
         initCommands();
 
         Sponge.getServer().getConsole().sendMessage(Text.of(PluginInfo.PluginPrefix, "Finished"));
     }
 
     private void initServices() {
-        injector = Guice.createInjector(new SpongeInjector());
+        injector = spongeRootInjector.createChildInjector(new SpongeInjector());
+        //injector = Guice.createInjector();
+    }
+
+    private void initSingletonServices() {
+        injector.getInstance(ConfigurationService.class);
+        injector.getInstance(PartyCacheService.class);
     }
 
     private void initCommands() {

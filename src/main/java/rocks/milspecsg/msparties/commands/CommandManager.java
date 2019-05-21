@@ -1,7 +1,7 @@
 package rocks.milspecsg.msparties.commands;
 
 @FunctionalInterface
-public interface CommandRegisterer {
+public interface CommandManager {
 
     void register(Object plugin);
 }

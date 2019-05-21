@@ -2,36 +2,25 @@ package rocks.milspecsg.msparties.model.results;
 
 import org.mongodb.morphia.query.UpdateResults;
 
-import java.util.function.Consumer;
 import java.util.function.Function;
 
-public class UpdateResult {
+public class UpdateResult extends Result {
 
     private UpdateResults updateResults;
-    private boolean success;
-    private String successMessage = "success", failMessage = "fail";
 
     public UpdateResults getUpdateResults() {
         return updateResults;
     }
 
-    public boolean isSuccess() {
-        return success;
-    }
-
-    public String getMessage() {
-        return success ? successMessage : failMessage;
-    }
-
-    public UpdateResult(UpdateResults updateResults, boolean success, String successMessage, String failMessage) {
+    public UpdateResult(UpdateResults updateResults, boolean success, String successMessage, String errorMessage) {
         this.updateResults = updateResults;
         this.success = success;
         this.successMessage = successMessage;
-        this.failMessage = failMessage;
+        this.errorMessage = errorMessage;
     }
 
-    public UpdateResult(UpdateResults updateResults, Function<UpdateResults, Boolean> successCondition, String successMessage, String failMessage) {
-        this(updateResults, successCondition.apply(updateResults), successMessage, failMessage);
+    public UpdateResult(UpdateResults updateResults, Function<UpdateResults, Boolean> successCondition, String successMessage, String errorMessage) {
+        this(updateResults, successCondition.apply(updateResults), successMessage, errorMessage);
     }
 
     public UpdateResult(UpdateResults updateResults, Function<UpdateResults, Boolean> successCondition) {
@@ -39,8 +28,8 @@ public class UpdateResult {
         this.success = successCondition.apply(updateResults);
     }
 
-    public UpdateResult(UpdateResults updateResults, String successMessage, String failMessage) {
-        this(updateResults, updateResults.getUpdatedCount() > 0, successMessage, failMessage);
+    public UpdateResult(UpdateResults updateResults, String successMessage, String errorMessage) {
+        this(updateResults, updateResults.getUpdatedCount() > 0, successMessage, errorMessage);
     }
 
     public UpdateResult(UpdateResults updateResults, boolean success) {

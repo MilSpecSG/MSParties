@@ -1,7 +1,6 @@
 package rocks.milspecsg.msparties.commands.party;
 
 import com.google.inject.Inject;
-import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
@@ -9,26 +8,21 @@ import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.source.ConsoleSource;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.service.pagination.PaginationList;
-import org.spongepowered.api.service.pagination.PaginationService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import rocks.milspecsg.msparties.api.member.MemberRepository;
 import rocks.milspecsg.msparties.api.party.PartyRepository;
 import rocks.milspecsg.msparties.model.core.Party;
-import rocks.milspecsg.msparties.model.exceptions.CommandExceptionFactory;
-import rocks.milspecsg.msparties.model.exceptions.InvalidNameException;
 
 import java.util.Optional;
-import java.util.UUID;
 
-public class PartyFindCommand implements CommandExecutor {
+public class PartyInfoCommand implements CommandExecutor {
 
     private PartyRepository partyRepository;
     private MemberRepository memberRepository;
 
     @Inject
-    public PartyFindCommand(PartyRepository partyRepository, MemberRepository memberRepository) {
+    public PartyInfoCommand(PartyRepository partyRepository, MemberRepository memberRepository) {
         this.partyRepository = partyRepository;
         this.memberRepository = memberRepository;
     }
@@ -59,7 +53,7 @@ public class PartyFindCommand implements CommandExecutor {
     }
 
     private void handleName(String name, CommandSource source) {
-        partyRepository.getOne(name).thenAcceptAsync(party -> {
+        partyRepository.getOneContains(name).thenAcceptAsync(party -> {
             if (party.isPresent()) {
                 printParty(party.get(), source);
             } else {
@@ -78,9 +72,11 @@ public class PartyFindCommand implements CommandExecutor {
         });
     }
 
-    private void printParty(Party party, CommandSource player) {
-        player.sendMessage(Text.of(TextColors.GREEN, "Party: ", party.name));
-        player.sendMessage(Text.of(TextColors.DARK_GRAY, "Leader: ", memberRepository.getUser(party.leaderUUID).flatMap(u -> Optional.of(u.getName())).orElse("N/A")));
+    protected void printParty(Party party, CommandSource player) {
+        player.sendMessage(Text.of(
+                TextColors.YELLOW, "====== ", TextColors.GOLD, party.name, " - ", TextColors.GOLD, "[", party.tag, TextColors.GOLD, "] ======",
+                TextColors.GRAY, "Leader: ", TextColors.GOLD, memberRepository.getUser(party.leaderUUID).flatMap(u -> Optional.of(u.getName())).orElse("N/A")
+        ));
 
 
 //        Optional<PaginationService> paginationService = Sponge.getServiceManager().provide(PaginationService.class);

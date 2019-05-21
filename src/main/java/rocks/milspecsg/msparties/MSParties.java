@@ -1,15 +1,9 @@
 package rocks.milspecsg.msparties;
 
-import com.google.inject.Guice;
 import com.google.inject.Inject;
 import com.google.inject.Injector;
-import ninja.leaping.configurate.commented.CommentedConfigurationNode;
-import ninja.leaping.configurate.loader.ConfigurationLoader;
 import org.slf4j.Logger;
 import org.spongepowered.api.Sponge;
-import org.spongepowered.api.command.args.GenericArguments;
-import org.spongepowered.api.command.spec.CommandSpec;
-import org.spongepowered.api.config.DefaultConfig;
 import org.spongepowered.api.event.game.state.GameInitializationEvent;
 import org.spongepowered.api.event.game.state.GameStartedServerEvent;
 import org.spongepowered.api.event.Listener;
@@ -38,17 +32,15 @@ public class MSParties {
     @Listener
     public void onServerInitialization(GameInitializationEvent event) {
         plugin = this;
-        Sponge.getServer().getConsole().sendMessage(Text.of(PluginInfo.PluginPrefix, "Hello!"));
         Sponge.getServer().getConsole().sendMessage(Text.of(PluginInfo.PluginPrefix, "Loading..."));
         initServices();
         initSingletonServices();
         initCommands();
-
         Sponge.getServer().getConsole().sendMessage(Text.of(PluginInfo.PluginPrefix, "Finished"));
     }
 
     private void initServices() {
-        injector = spongeRootInjector.createChildInjector(new SpongeInjector());
+        injector = spongeRootInjector.createChildInjector(new MSPartiesModule());
         //injector = Guice.createInjector();
     }
 

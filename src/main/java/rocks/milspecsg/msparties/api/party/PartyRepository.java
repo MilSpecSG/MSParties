@@ -4,6 +4,7 @@ import org.spongepowered.api.entity.living.player.User;
 import rocks.milspecsg.msparties.api.Repository;
 import rocks.milspecsg.msparties.model.exceptions.*;
 import rocks.milspecsg.msparties.model.core.Party;
+import rocks.milspecsg.msparties.model.results.CreateResult;
 import rocks.milspecsg.msparties.model.results.UpdateResult;
 
 import java.util.List;
@@ -18,9 +19,8 @@ public interface PartyRepository extends Repository<Party> {
      * @param name Of party
      * @param leader of party
      * @return {@code Optional} wrapped {@code Party}
-     * @throws InvalidNameException When name does not successfully pass language filter
      */
-    CompletableFuture<Optional<? extends Party>> createParty(String name, User leader) throws InvalidNameException;
+    CompletableFuture<CreateResult<? extends Party>> createParty(String name, User leader);
 
     CompletableFuture<UpdateResult> disbandParty();
 
@@ -32,7 +32,28 @@ public interface PartyRepository extends Repository<Party> {
 
     CompletableFuture<UpdateResult> inviteUser(User user) throws NotInPartyException;
 
+    /**
+     * @param name Value to check
+     * @return All parties that contain {@code name} in their name
+     */
+    CompletableFuture<List<? extends Party>> getAllContains(String name);
+
+    /**
+     * @param name Value to check
+     * @return First party that contains {@code name} in its name
+     */
+    CompletableFuture<Optional<? extends Party>> getOneContains(String name);
+
+    /**
+     * @param name Value to check
+     * @return All parties that contain {@code name} in their name
+     */
     CompletableFuture<List<? extends Party>> getAll(String name);
+
+    /**
+     * @param name Value to check
+     * @return First party that contains {@code name} in its name
+     */
     CompletableFuture<Optional<? extends Party>> getOne(String name);
 
     /**

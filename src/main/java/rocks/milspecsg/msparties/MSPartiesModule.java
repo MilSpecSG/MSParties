@@ -8,14 +8,14 @@ import rocks.milspecsg.msparties.api.party.PartyCacheService;
 import rocks.milspecsg.msparties.api.party.PartyRepository;
 import rocks.milspecsg.msparties.commands.party.PartyCreateCommand;
 import rocks.milspecsg.msparties.commands.party.PartyDisbandCommand;
-import rocks.milspecsg.msparties.commands.party.PartyFindCommand;
+import rocks.milspecsg.msparties.commands.party.PartyInfoCommand;
 import rocks.milspecsg.msparties.service.config.ApiConfigurationService;
 import rocks.milspecsg.msparties.service.member.ApiMemberRepository;
 import rocks.milspecsg.msparties.service.party.ApiNameVerificationService;
 import rocks.milspecsg.msparties.service.party.ApiPartyCacheService;
 import rocks.milspecsg.msparties.service.party.ApiPartyRepository;
 
-public class SpongeInjector extends AbstractModule {
+public class MSPartiesModule extends AbstractModule {
     @Override
     protected void configure() {
         //        bind(new TypeLiteral<PartyRepository<User>>(){}).to(new TypeLiteral<PartyRepository<User>>(){});
@@ -26,6 +26,6 @@ public class SpongeInjector extends AbstractModule {
         bind(MemberRepository.class).to(ApiMemberRepository.class);
         bind(PartyCreateCommand.class);
         bind(PartyDisbandCommand.class);
-        bind(PartyFindCommand.class);
+        bind(PartyInfoCommand.class);
     }
 }

@@ -16,6 +16,7 @@ import java.util.function.Predicate;
 public class Party extends Dbo {
 
     public String name;
+    public String tag;
     public int maxSize;
     public UUID leaderUUID;
     public List<UUID> memberUUIDs; //todo: check if array is better

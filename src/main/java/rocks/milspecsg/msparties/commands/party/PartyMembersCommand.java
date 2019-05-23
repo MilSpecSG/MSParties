@@ -1,27 +1,32 @@
 package rocks.milspecsg.msparties.commands.party;
 
 import com.google.inject.Inject;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.service.pagination.PaginationList;
+import org.spongepowered.api.service.pagination.PaginationService;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+import rocks.milspecsg.msparties.PluginInfo;
 import rocks.milspecsg.msparties.api.member.MemberRepository;
 import rocks.milspecsg.msparties.api.party.PartyRepository;
 import rocks.milspecsg.msparties.model.core.Party;
+import rocks.milspecsg.msparties.model.core.Rank;
 
-import java.util.Optional;
+import java.util.*;
 
-public class PartyInfoCommand implements CommandExecutor {
+public class PartyMembersCommand implements CommandExecutor {
 
-    private PartyRepository partyRepository;
-    private MemberRepository memberRepository;
+    protected PartyRepository partyRepository;
+    protected MemberRepository memberRepository;
 
     @Inject
-    public PartyInfoCommand(PartyRepository partyRepository, MemberRepository memberRepository) {
+    public PartyMembersCommand(PartyRepository partyRepository, MemberRepository memberRepository) {
         this.partyRepository = partyRepository;
         this.memberRepository = memberRepository;
     }
@@ -64,23 +69,25 @@ public class PartyInfoCommand implements CommandExecutor {
             if (party.isPresent()) {
                 printParty(party.get(), player);
             } else {
-                player.sendMessage(Text.of(TextColors.RED, "You are not currently in a party, to see information of another party use:\n/party info <name>"));
+                player.sendMessage(Text.of(TextColors.RED, "You are not currently in a " + partyRepository.getDefaultIdentifierSingularLower() + ", to see members of another " + partyRepository.getDefaultIdentifierSingularLower() + " use:\n/" + partyRepository.getDefaultIdentifierSingularLower() + " members <name>"));
             }
         });
     }
 
-    protected void printParty(Party party, CommandSource player) {
-        player.sendMessage(Text.of(
-                party.getTitle(), "\n",
-                TextColors.GRAY, "Leader: ", TextColors.GOLD, memberRepository.getUser(party.leaderUUID).flatMap(u -> Optional.of(u.getName())).orElse("N/A")
-        ));
+    protected void printParty(Party party, CommandSource source) {
+        partyRepository.getUserNameRankMap(party).thenAcceptAsync(map -> {
+            List<Text> textList = new ArrayList<>();
 
+            for (String name : map.keySet()) {
+                Rank rank = map.get(name);
+                textList.add(Text.of(rank.getColor(), name, " (", rank.name, ")"));
+            }
+            textList.sort(Text::compareTo);
 
-//        Optional<PaginationService> paginationService = Sponge.getServiceManager().provide(PaginationService.class);
-//        if (!paginationService.isPresent()) return;
-//        PaginationList.Builder paginationBuilder = paginationService.get().builder().title(Text.of(TextColors.GOLD, party.name)).padding(Text.of(TextColors.DARK_GREEN, "-")).contents(helpList).linesPerPage(10);
-//        paginationBuilder.build().sendTo(player);
+            Optional<PaginationService> paginationService = Sponge.getServiceManager().provide(PaginationService.class);
+            if (!paginationService.isPresent()) return;
+            PaginationList.Builder paginationBuilder = paginationService.get().builder().title(PluginInfo.PluginPrefix.concat(party.getTitle())).padding(Text.of(TextColors.GRAY, "=")).contents(textList).linesPerPage(10);
+            paginationBuilder.build().sendTo(source);
+        });
     }
-
-
 }

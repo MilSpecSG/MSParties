@@ -25,7 +25,7 @@ public class ApiMemberRepository extends ApiRepository<Member> implements Member
     }
 
     @Override
-    public CompletableFuture<Optional<? extends Member>> getMember(UUID userUUID) {
+    public CompletableFuture<Optional<? extends Member>> getOneOrGenerate(UUID userUUID) {
         return CompletableFuture.supplyAsync(() -> {
             // try to find one in the database
             List<Member> members = asQuery(userUUID).asList();
@@ -34,18 +34,13 @@ public class ApiMemberRepository extends ApiRepository<Member> implements Member
             // if there isn't one already, create a new one
             Member member = new Member();
             member.userUUID = userUUID;
-            return insertOneAsync(member).join();
+            return insertOne(member).join();
         });
     }
 
     @Override
     public UpdateOperations<Member> createUpdateOperations() {
         return mongoContext.datastore.createUpdateOperations(Member.class);
-    }
-
-    @Override
-    public CompletableFuture<Optional<? extends Member>> getOneAsync(ObjectId id) {
-        return CompletableFuture.supplyAsync(() -> Optional.ofNullable(mongoContext.datastore.get(Member.class, id)));
     }
 
     @Override
@@ -56,6 +51,16 @@ public class ApiMemberRepository extends ApiRepository<Member> implements Member
     @Override
     public Optional<User> getUser(String lastKnownName) {
         return Sponge.getServiceManager().provide(UserStorageService.class).flatMap(u -> u.get(lastKnownName));
+    }
+
+    @Override
+    public CompletableFuture<Optional<ObjectId>> getId(UUID uuid) {
+        return CompletableFuture.supplyAsync(() -> Optional.ofNullable(asQuery(uuid).project("_id", true).get().getId()));
+    }
+
+    @Override
+    public CompletableFuture<Optional<UUID>> getUUID(ObjectId id) {
+        return CompletableFuture.supplyAsync(() -> Optional.ofNullable(asQuery(id).project("userUUID", true).get().userUUID));
     }
 
     @Override

@@ -10,20 +10,11 @@ public class Member extends Dbo {
 
     public UUID userUUID;
 
-    /**
-     * @see Rank#getIndex()
-     * 0 is default
-     */
-    public int rankIndex;
 
-
-    public int playerKills;
-    public int playerDeaths;
-    public int mobKills;
-    public int mobDeaths;
-    public int totalKills;
-    public int totalDeaths;
-
-
-
+//    public int playerKills;
+//    public int playerDeaths;
+//    public int mobKills;
+//    public int mobDeaths;
+//    public int totalKills;
+//    public int totalDeaths;
 }

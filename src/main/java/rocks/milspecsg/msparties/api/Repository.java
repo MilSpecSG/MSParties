@@ -10,10 +10,9 @@ import java.util.concurrent.CompletableFuture;
 
 public interface Repository<T extends ObjectWithId<ObjectId>> {
 
-    // <T extends ObjectWithId<ObjectId, Date>>
-    CompletableFuture<Optional<? extends T>> insertOneAsync(T item);
+    CompletableFuture<Optional<? extends T>> insertOne(T item);
 
-    CompletableFuture<Optional<? extends T>> getOneAsync(ObjectId id);
+    CompletableFuture<Optional<? extends T>> getOne(ObjectId id);
 
     UpdateOperations<T> createUpdateOperations();
 
@@ -23,4 +22,5 @@ public interface Repository<T extends ObjectWithId<ObjectId>> {
 
     Query<T> asQuery();
 
+    Query<T> asQuery(ObjectId id);
 }

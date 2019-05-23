@@ -15,34 +15,36 @@ import java.util.concurrent.TimeUnit;
 @Singleton
 public class ApiPartyCacheService implements PartyCacheService {
 
-    private ConfigurationService configurationService;
+    protected ConfigurationService configurationService;
 
-    private Map<Party, Long> partyCache;
+    protected Map<Party, Long> partyCache;
 
     @Inject
     public ApiPartyCacheService(ConfigurationService configurationService) {
         this.configurationService = configurationService;
         partyCache = new HashMap<>();
         Integer interval = configurationService.getConfigInteger(ConfigKeys.CACHE_INVALIDATION_INTERVAL_SECONDS_INT);
-        Task.builder().interval(interval, TimeUnit.SECONDS).execute(task).submit(MSParties.plugin);
+        Task.builder().interval(interval, TimeUnit.SECONDS).execute(getTask()).submit(MSParties.plugin);
     }
 
     /**
      * Cache invalidation task
      */
-    private Runnable task = () -> {
-        Integer timeoutSeconds = configurationService.getConfigInteger(ConfigKeys.CACHE_INVALIDATION_TIMOUT_SECONDS_INT);
+    protected Runnable getTask() {
+        return () -> {
+            Integer timeoutSeconds = configurationService.getConfigInteger(ConfigKeys.CACHE_INVALIDATION_TIMOUT_SECONDS_INT);
 
-        List<Party> toRemove = new ArrayList<>();
-        for (Party party : getParties()) {
-            if (System.currentTimeMillis() - partyCache.get(party) > timeoutSeconds * 1000L) {
-                // if time has gone over limit
-                toRemove.add(party);
+            List<Party> toRemove = new ArrayList<>();
+            for (Party party : getParties()) {
+                if (System.currentTimeMillis() - partyCache.get(party) > timeoutSeconds * 1000L) {
+                    // if time has gone over limit
+                    toRemove.add(party);
+                }
             }
-        }
-        // remove from map
-        toRemove.forEach(this::removeParty);
-    };
+            // remove from map
+            toRemove.forEach(this::removeParty);
+        };
+    }
 
     @Override
     public Map<Party, Long> getPartiesMap() {

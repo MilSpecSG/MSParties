@@ -13,4 +13,9 @@ public class Result {
         return success ? successMessage : errorMessage;
     }
 
+    public String getErrorMessage() {
+        return errorMessage;
+    }
+
+
 }

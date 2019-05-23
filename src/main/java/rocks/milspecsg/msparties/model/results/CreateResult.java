@@ -36,8 +36,5 @@ public class CreateResult<T> extends Result {
         return success ? Optional.ofNullable(value) : Optional.empty();
     }
 
-    public String getErrorMessage() {
-        return errorMessage;
-    }
 
 }

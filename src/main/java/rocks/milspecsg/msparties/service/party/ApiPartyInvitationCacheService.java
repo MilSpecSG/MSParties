@@ -26,19 +26,19 @@ public class ApiPartyInvitationCacheService implements PartyInvitationCacheServi
     }
 
     @Override
-    public boolean hasInvitation(UUID userUUID, ObjectId partyId) {
+    public boolean hasInvitation(ObjectId partyId, UUID userUUID) {
         List<PartyInvitation> invitations = userInvitationMap.get(userUUID);
         return invitations != null && invitations.stream().anyMatch(partyInvitation -> partyInvitation.partyId.equals(partyId));
     }
 
     @Override
-    public void addInvitation(UUID userUUID, PartyInvitation partyInvitation) {
+    public void addInvitation(PartyInvitation partyInvitation, UUID userUUID) {
         if (userInvitationMap.containsKey(userUUID)) userInvitationMap.get(userUUID).add(partyInvitation);
         else userInvitationMap.put(userUUID, Collections.singletonList(partyInvitation));
     }
 
     @Override
-    public boolean removeInvitation(UUID userUUID, ObjectId partyId) {
+    public boolean removeInvitation(ObjectId partyId, UUID userUUID) {
         if (!userInvitationMap.containsKey(userUUID)) return false;
         return userInvitationMap.get(userUUID).removeIf(partyInvitation -> partyInvitation.partyId.equals(partyId));
     }

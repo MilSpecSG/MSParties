@@ -12,7 +12,7 @@ import java.util.Map;
 public class ApiPermissionCacheService implements PermissionCacheService {
 
 
-    Map<ObjectId, Map<String, Integer>> permissionCache;
+    protected Map<ObjectId, Map<String, Integer>> permissionCache;
 
     @Inject
     public ApiPermissionCacheService() {
@@ -20,22 +20,38 @@ public class ApiPermissionCacheService implements PermissionCacheService {
     }
 
     @Override
-    public void setPermission(ObjectId id, String permission, Integer rank) {
-        
+    public void setPermission(ObjectId id, String permission, Integer rankIndex) {
+        if (checkSet(id)) {
+            permissionCache.get(id).put(permission, rankIndex);
+        } else {
+            permissionCache.put(id, new HashMap<String, Integer>() {{
+                put(permission, rankIndex);
+            }});
+        }
+    }
+
+    @Override
+    public void clear(ObjectId id) {
+        permissionCache.remove(id);
     }
 
     @Override
     public boolean checkSet(ObjectId id) {
-        return false;
+        return permissionCache.containsKey(id) && permissionCache.get(id) != null;
     }
 
     @Override
     public boolean checkSet(ObjectId id, String permission) {
-        return false;
+        return checkSet(id) && permissionCache.get(id).containsKey(permission);
     }
 
     @Override
-    public boolean check(ObjectId id, String permission, Integer rank) {
-        return false;
+    public boolean check(ObjectId id, String permission, Integer rankIndex) {
+        return checkSet(id, permission) && getRankIndex(id, permission) <= rankIndex;
+    }
+
+    @Override
+    public Integer getRankIndex(ObjectId id, String permission) {
+        return permissionCache.get(id).get(permission);
     }
 }

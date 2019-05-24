@@ -1,6 +1,7 @@
 package rocks.milspecsg.msparties.api.party;
 
 import org.bson.types.ObjectId;
+import rocks.milspecsg.msparties.model.core.*;
 
 public interface PermissionCacheService {
 
@@ -15,12 +16,51 @@ public interface PermissionCacheService {
     String KICK = "kick";
     String BAN = "ban";
 
-    void setPermission(ObjectId id, String permission, Integer rank);
+    /**
+     * @param id         {@link ObjectId} id of {@link Party} to set
+     * @param permission {@link String} permission value to set
+     * @param rankIndex  {@link Integer} corresponds to {@link Rank#index}.
+     *                   All ranks at or above this index will have the permission
+     */
+    void setPermission(ObjectId id, String permission, Integer rankIndex);
 
+    /**
+     * Will remove the matching {@link Party}'s permissions from the cache
+     *
+     * @param id {@link ObjectId} id of {@link Party} to clear
+     */
+    void clear(ObjectId id);
+
+    /**
+     * @param id {@link ObjectId} id of {@link Party} to check
+     * @return Whether this permissions of this {@link Party} have been saved in the cache
+     */
     boolean checkSet(ObjectId id);
 
+    /**
+     * @param id         {@link ObjectId} id of {@link Party} to check
+     * @param permission {@link String} permission value to check
+     * @return Whether this permission node has been set in the cache
+     */
     boolean checkSet(ObjectId id, String permission);
 
-    boolean check(ObjectId id, String permission, Integer rank);
+    /**
+     * @param id         {@link ObjectId} id of {@link Party} to check
+     * @param permission {@link String} permission value to check
+     * @param rankIndex  {@link Integer} rank to check
+     * @return Whether the given rank has access to the given permission.
+     * <p>
+     * All ranks at or above the saved permission index will have the permission
+     */
+    boolean check(ObjectId id, String permission, Integer rankIndex);
+
+    /**
+     * @param id         {@link ObjectId} id of {@link Party} to check
+     * @param permission {@link String} permission value to check
+     * @return {@link Integer} rankIndex of the specified permission and party
+     *
+     * Precondition: id and permission must exist in the cache, see {@link #checkSet(ObjectId, String)}
+     */
+    Integer getRankIndex(ObjectId id, String permission);
 
 }

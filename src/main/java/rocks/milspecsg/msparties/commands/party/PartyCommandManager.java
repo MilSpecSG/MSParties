@@ -61,7 +61,8 @@ public class PartyCommandManager implements CommandManager {
                 .description(Text.of("Create a party"))
                 .permission(PluginPermissions.CREATE_COMMAND)
                 .arguments(
-                        GenericArguments.string(Text.of("name"))
+                        GenericArguments.string(Text.of("name")),
+                        GenericArguments.string(Text.of("tag"))
                 )
                 .executor(partyCreateCommand)
                 .build());
@@ -69,6 +70,9 @@ public class PartyCommandManager implements CommandManager {
         subCommands.put(Arrays.asList("disband", "remove", "delete", "begone"), CommandSpec.builder()
                 .description(Text.of("Disband party"))
                 .permission(PluginPermissions.DISBAND_COMMAND)
+                .arguments(
+                        GenericArguments.optional(GenericArguments.string(Text.of("name")))
+                )
                 .executor(partyDisbandCommand)
                 .build());
 

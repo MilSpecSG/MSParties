@@ -78,7 +78,7 @@ public class PartyInfoCommand implements CommandExecutor {
 
 //        Optional<PaginationService> paginationService = Sponge.getServiceManager().provide(PaginationService.class);
 //        if (!paginationService.isPresent()) return;
-//        PaginationList.Builder paginationBuilder = paginationService.get().builder().title(Text.of(TextColors.GOLD, party.name)).padding(Text.of(TextColors.DARK_GREEN, "-")).contents(helpList).linesPerPage(10);
+//        PaginationList.Builder paginationBuilder = paginationService.getRequiredRankIndex().builder().title(Text.of(TextColors.GOLD, party.name)).padding(Text.of(TextColors.DARK_GREEN, "-")).contents(helpList).linesPerPage(10);
 //        paginationBuilder.build().sendTo(player);
     }
 

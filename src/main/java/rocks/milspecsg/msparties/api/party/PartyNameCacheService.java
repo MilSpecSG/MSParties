@@ -16,7 +16,7 @@ public interface PartyNameCacheService {
 
     /**
      * Add a {@link Party} name to the cache
-     * @param name {@link Party} name to add
+     * @param name {@link Party} name to put
      */
     void addPartyName(String name);
 
@@ -27,7 +27,7 @@ public interface PartyNameCacheService {
      * Same as calling {@link #removePartyName(String)} and then {@link #addPartyName(String)}
      *
      * @param oldName {@link Party} name to remove
-     * @param newName {@link Party} mame to add
+     * @param newName {@link Party} mame to put
      */
     void setPartyName(String oldName, String newName);
 

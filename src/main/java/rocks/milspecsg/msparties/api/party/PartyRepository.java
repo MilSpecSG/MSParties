@@ -1,11 +1,15 @@
 package rocks.milspecsg.msparties.api.party;
 
 import org.bson.types.ObjectId;
+import org.checkerframework.checker.nullness.Opt;
+import org.mongodb.morphia.query.Query;
+import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import rocks.milspecsg.msparties.api.Repository;
 import rocks.milspecsg.msparties.model.core.Rank;
 import rocks.milspecsg.msparties.model.core.Party;
 import rocks.milspecsg.msparties.model.results.CreateResult;
+import rocks.milspecsg.msparties.model.results.PermissibleResult;
 import rocks.milspecsg.msparties.model.results.UpdateResult;
 
 import java.util.List;
@@ -85,53 +89,55 @@ public interface PartyRepository extends Repository<Party> {
     }
 
     /**
-     * @param name   {@link String} Name of new party
+     * @param name   {@link String} Name of new {@link Party}
+     * @param tag {@link String} Tag of new {@link Party}
      * @param leader {@link User} that is to be the leader of the new party
      * @return {@code Optional} wrapped {@code Party}
      */
-    CompletableFuture<CreateResult<? extends Party>> createParty(String name, User leader);
+    CompletableFuture<CreateResult<? extends Party>> createParty(String name, String tag, User leader);
 
     /**
-     * @param party {@link Party} to be modified
-     * @param user  {@link User} that is attempting to disband the party
+     * @param name {@link String} Name of {@link Party} to be modified
+     * @param user {@link User} that is attempting to disband the party
      * @return {@link UpdateResult} with information about the modification
      */
-    CompletableFuture<UpdateResult> disbandParty(Party party, User user);
+    CompletableFuture<PermissibleResult> disbandParty(String name, User user);
 
     /**
-     * @param party {@link Party} to be modified
-     * @param user  {@link User} to add to party
+     * @param name {@link String} Name of {@link Party} to be modified
+     * @param user {@link User} to put to party
      * @return {@link UpdateResult} with information about the modification
      */
-    CompletableFuture<UpdateResult> joinParty(Party party, User user);
+    CompletableFuture<PermissibleResult> joinParty(String name, User user);
 
     /**
-     * @param party {@link Party} to be modified
-     * @param user  {@link User} to remove from party
+     * @param name {@link String} Name of {@link Party} to be modified
+     * @param user {@link User} to remove from party
      * @return {@link UpdateResult} with information about the modification
      */
-    CompletableFuture<UpdateResult> leaveParty(Party party, User user);
+    CompletableFuture<PermissibleResult> leaveParty(String name, User user, Optional<User> newLeader);
 
     /**
-     * @param party   {@link Party} to be modified
+     * @param name    {@link String} Name of {@link Party} to be modified
      * @param newName {@link String} Name to set
      * @return {@link UpdateResult} with information about the modification
      */
-    CompletableFuture<UpdateResult> renameParty(Party party, String newName);
+    CompletableFuture<PermissibleResult> nameParty(String name, String newName, User user);
 
     /**
-     * @param party  {@link Party} to be modified
+     * @param name   {@link String} Name of {@link Party} to be modified
      * @param newTag {@link String} Tag to set
      * @return {@link UpdateResult} with information about the modification
      */
-    CompletableFuture<UpdateResult> retagParty(Party party, String newTag);
+    CompletableFuture<PermissibleResult> tagParty(String name, String newTag, User user);
 
     /**
-     * @param party {@link Party} to invite {@link User} to
-     * @param user  {@link User} to invite to party
+     * @param party        {@link Party} to invite {@link User} to
+     * @param user         {@link User} to invite to party
+     * @param targetPlayer
      * @return {@link UpdateResult} with information about the modificatio
      */
-    CompletableFuture<UpdateResult> inviteUser(Party party, User user);
+    CompletableFuture<PermissibleResult> inviteUser(Party party, User user, Player targetPlayer);
 
     /**
      * @param name {@link String} Value to check
@@ -188,23 +194,33 @@ public interface PartyRepository extends Repository<Party> {
     CompletableFuture<Map<String, Rank>> getUserNameRankMap(Party party);
 
     /**
+     * @param name {@link String} of {@link Party}
+     * @return {@link UUID} of the leader of the {@link Party}
+     */
+    CompletableFuture<Optional<UUID>> getLeaderUUID(String name);
+
+    /**
+     * @param name {@link String} of {@link Party}
+     * @return {@link String} Name of the leader of the {@link Party}
+     */
+    CompletableFuture<Optional<User>> getLeader(String name);
+
+    /**
      * @param party {@link Party} to reset ranks
      * @return A {@link Party} with the ranks reset to default TODO: as defined in the config
      */
     CompletableFuture<Party> resetRanks(Party party);
 
     /**
-     * @param id {@link ObjectId} of a {@link Party} to reset ranks
+     * @param id {@link ObjectId} of {@link Party} to reset ranks
      * @return A {@link Party} with the ranks reset to default TODO: as defined in the config
      */
     CompletableFuture<UpdateResult> resetRanks(ObjectId id);
 
     /**
-     * @param name {@link String} of a {@link Party} to reset ranks.
-     *
-     * {@link String#equalsIgnoreCase(String)} must be {@code true} for {@link Party#name} and the provided {@code name}
-     *
+     * @param name {@link String} of {@link Party} to reset ranks.
      * @return A {@link Party} with the ranks reset to default TODO: as defined in the config
+     * {@link String#equalsIgnoreCase(String)} must be {@code true} for {@link Party#name} and the provided parameter {@code name}
      */
     CompletableFuture<UpdateResult> resetRanks(String name);
 
@@ -215,18 +231,56 @@ public interface PartyRepository extends Repository<Party> {
     CompletableFuture<Party> resetPermissions(Party party);
 
     /**
-     * @param id {@link ObjectId} of a {@link Party} to reset permissions
+     * @param id {@link ObjectId} of {@link Party} to reset permissions
      * @return A {@link Party} with the permissions reset to default TODO: as defined in the config
      */
     CompletableFuture<UpdateResult> resetPermissions(ObjectId id);
 
     /**
-     * @param name {@link String} of a {@link Party} to reset permissions.
-     *
-     * {@link String#equalsIgnoreCase(String)} must be {@code true} for {@link Party#name} and the provided {@code name}
-     *
+     * @param name {@link String} of {@link Party} to reset permissions.
      * @return A {@link Party} with the permissions reset to default TODO: as defined in the config
+     * {@link String#equalsIgnoreCase(String)} must be {@code true} for {@link Party#name} and the provided parameter {@code name}
      */
     CompletableFuture<UpdateResult> resetPermissions(String name);
 
+    CompletableFuture<Optional<Integer>> getRankIndex(ObjectId id, User user);
+
+    /**
+     * @param id         {@link ObjectId} id of {@link Party} to check
+     * @param permission {@link String} permission value to check
+     * @param rankIndex  {@link Integer} rank to check
+     * @return Whether the given rank has access to the given permission.
+     * <p>
+     * All ranks at or above the saved permission index will have the permission
+     * </p>
+     * <p>
+     * This method will first check the {@link PermissionCacheService}.
+     * If the required value is not saved in the cache, it will be retrieved from the database and be saved in the cache
+     * </p>
+     */
+    CompletableFuture<Boolean> check(ObjectId id, String permission, Integer rankIndex);
+
+    /**
+     * @param id         {@link ObjectId} id of {@link Party} to check
+     * @param permission {@link String} permission value to check
+     * @param user       {@link User} to check
+     * @return Whether the given rank has access to the given permission.
+     * <p>
+     * All ranks at or above the saved permission index will have the permission
+     * </p>
+     * <p>
+     * This method will first check the {@link PermissionCacheService}.
+     * If the required value is not saved in the cache, it will be retrieved from the database and be saved in the cache
+     * </p>
+     */
+    CompletableFuture<Boolean> check(ObjectId id, String permission, User user);
+
+    CompletableFuture<Optional<ObjectId>> getId(String name);
+
+    /**
+     * @param name {@link String} of a {@link Party} to select
+     * @return A {@link Query<Party>} containing a party matching the given {@link String} name
+     * {@link String#equalsIgnoreCase(String)} must be {@code true} for {@link Party#name} and the provided parameter {@code name}
+     */
+    Query<Party> asQuery(String name);
 }

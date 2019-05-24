@@ -37,7 +37,7 @@ public class PartyCreateCommand implements CommandExecutor {
             if (!optionalName.isPresent()) throw new CommandException(Text.of("Missing name"));
             if (!optionalTag.isPresent()) throw new CommandException(Text.of("Missing tag"));
 
-            partyRepository.createParty(optionalName.get(), player).thenAcceptAsync(createResult -> {
+            partyRepository.createParty(optionalName.get(), optionalTag.get(), player).thenAcceptAsync(createResult -> {
                 if (createResult.isSuccess() && createResult.getValue().isPresent()) {
                     Party party = createResult.getValue().get();
                     player.sendMessage(Text.of(
@@ -47,7 +47,7 @@ public class PartyCreateCommand implements CommandExecutor {
                     ));
                 } else {
                     player.sendMessage(Text.of(
-                            PluginInfo.PluginPrefix, TextColors.RED, createResult.getErrorMessage()
+                            PluginInfo.PluginPrefix, createResult.getErrorMessage()
                     ));
                 }
             });

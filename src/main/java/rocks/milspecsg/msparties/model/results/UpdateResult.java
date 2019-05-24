@@ -1,6 +1,7 @@
 package rocks.milspecsg.msparties.model.results;
 
 import org.mongodb.morphia.query.UpdateResults;
+import org.spongepowered.api.text.Text;
 
 import java.util.function.Function;
 
@@ -12,14 +13,14 @@ public class UpdateResult extends Result {
         return updateResults;
     }
 
-    public UpdateResult(UpdateResults updateResults, boolean success, String successMessage, String errorMessage) {
+    public UpdateResult(UpdateResults updateResults, boolean success, Text successMessage, Text errorMessage) {
         this.updateResults = updateResults;
         this.success = success;
         this.successMessage = successMessage;
         this.errorMessage = errorMessage;
     }
 
-    public UpdateResult(UpdateResults updateResults, Function<UpdateResults, Boolean> successCondition, String successMessage, String errorMessage) {
+    public UpdateResult(UpdateResults updateResults, Function<UpdateResults, Boolean> successCondition, Text successMessage, Text errorMessage) {
         this(updateResults, successCondition.apply(updateResults), successMessage, errorMessage);
     }
 
@@ -28,7 +29,7 @@ public class UpdateResult extends Result {
         this.success = successCondition.apply(updateResults);
     }
 
-    public UpdateResult(UpdateResults updateResults, String successMessage, String errorMessage) {
+    public UpdateResult(UpdateResults updateResults, Text successMessage, Text errorMessage) {
         this(updateResults, updateResults.getUpdatedCount() > 0, successMessage, errorMessage);
     }
 

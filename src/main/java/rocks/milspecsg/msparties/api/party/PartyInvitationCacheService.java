@@ -10,11 +10,11 @@ public interface PartyInvitationCacheService {
 
     List<PartyInvitation> getInvitations(UUID userUUID);
 
-    boolean hasInvitation(UUID userUUID, ObjectId partyId);
+    boolean hasInvitation(ObjectId partyId, UUID userUUID);
 
-    void addInvitation(UUID userUUID, PartyInvitation partyInvitation);
+    void addInvitation(PartyInvitation partyInvitation, UUID userUUID);
 
-    boolean removeInvitation(UUID userUUID, ObjectId partyId);
+    boolean removeInvitation(ObjectId partyId, UUID userUUID);
 
     void clearInvitations(UUID userUUID);
 

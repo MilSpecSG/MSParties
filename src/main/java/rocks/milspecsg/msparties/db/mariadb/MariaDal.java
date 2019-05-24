@@ -57,7 +57,7 @@ public class MariaDal {
 //                party = new Party();
 //
 //                party.maxSize = (rs.getInt("empno"));
-//                parties.add(party);
+//                parties.put(party);
 //            }
 //        } catch (InvalidMaxSizeException e) {
 //            e.printStackTrace();

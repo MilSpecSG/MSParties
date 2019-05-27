@@ -26,4 +26,8 @@ public class ApiPartyCacheService extends ApiRepositoryCacheService<Party> imple
         return getOne(party -> party.name.equalsIgnoreCase(name));
     }
 
+    @Override
+    public void remove(String name) {
+        remove(party -> party.name.equalsIgnoreCase(name));
+    }
 }

@@ -43,7 +43,7 @@ public class PartyCreateCommand implements CommandExecutor {
                     player.sendMessage(Text.of(
                             PluginInfo.PluginPrefix, TextColors.GRAY, "You have successfully created ", TextColors.YELLOW, party.name, "\n",
                             TextColors.GRAY, "Run ", TextColors.GREEN, "/p invite <player>", TextColors.GRAY, " to invite a friend\n",
-                            "or ", TextColors.GREEN, "/p public", TextColors.GRAY, " allow anyone to join"
+                            "or ", TextColors.GREEN, "/p privacy public", TextColors.GRAY, " allow anyone to join"
                     ));
                 } else {
                     player.sendMessage(Text.of(

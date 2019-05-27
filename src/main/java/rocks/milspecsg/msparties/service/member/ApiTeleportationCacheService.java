@@ -3,7 +3,9 @@ package rocks.milspecsg.msparties.service.member;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.bson.types.ObjectId;
+import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
+import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.scheduler.Task;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
@@ -17,6 +19,8 @@ import rocks.milspecsg.msparties.model.misc.TeleportationRequest;
 import rocks.milspecsg.msparties.service.ApiCacheInvalidationService;
 
 import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.stream.Collectors;
 
 @Singleton
 public class ApiTeleportationCacheService extends ApiCacheInvalidationService<TeleportationRequest> implements TeleportationCacheService {
@@ -57,14 +61,19 @@ public class ApiTeleportationCacheService extends ApiCacheInvalidationService<Te
     }
 
     @Override
-    public Optional<? extends TeleportationRequest> sendRequest(Player teleporter, Player receiver, Party party) {
-        teleporter.sendMessage(Text.of(PluginInfo.PluginPrefix, TextColors.YELLOW, receiver.getName(), TextColors.GRAY, " from ", TextColors.YELLOW, party.name, TextColors.GRAY, " has requested that you teleport to them.\n",
-                "type ", TextColors.GREEN, "/p accept", TextColors.GRAY, " to accept"));
-        TeleportationRequest request = new TeleportationRequest();
-        request.teleportingPlayer = teleporter.getUniqueId();
-        request.targetPlayer = receiver.getUniqueId();
-        request.targetPartyId = party.getId();
-        request.message = "";
-        return put(request);
+    public CompletableFuture<List<? extends Player>> sendRequest(User receiver, Party party) {
+        return CompletableFuture.supplyAsync(() -> party.members.keySet().stream().map(id -> memberRepository.getUser(id).thenApplyAsync(optionalUser -> optionalUser.flatMap(User::getPlayer)).join()
+                .map(teleporter -> {
+                    if (teleporter.getUniqueId().equals(receiver.getUniqueId())) return null;
+                    teleporter.sendMessage(Text.of(PluginInfo.PluginPrefix, TextColors.YELLOW, receiver.getName(), TextColors.GRAY, " from ", TextColors.YELLOW, party.name, TextColors.GRAY, " has requested that you teleport to them.\n",
+                            "type ", TextColors.GREEN, "/p accept", TextColors.GRAY, " to accept"));
+                    TeleportationRequest request = new TeleportationRequest();
+                    request.teleportingPlayer = teleporter.getUniqueId();
+                    request.targetPlayer = receiver.getUniqueId();
+                    request.targetPartyId = party.getId();
+                    request.message = "";
+                    put(request);
+                    return teleporter;
+                }).orElse(null)).filter(Objects::nonNull).collect(Collectors.toList()));
     }
 }

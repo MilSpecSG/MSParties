@@ -9,4 +9,6 @@ public interface PartyCacheService extends RepositoryCacheService<Party> {
 
     Optional<? extends Party> getOne(String name);
 
+    void remove(String name);
+
 }

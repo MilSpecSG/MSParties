@@ -31,6 +31,7 @@ public class MSPartiesModule extends AbstractModule {
         bind(PartyAcceptCommand.class);
         bind(PartyCreateCommand.class);
         bind(PartyDisbandCommand.class);
+        bind(PartyPrivacyCommand.class);
         bind(PartyInfoCommand.class);
         bind(PartyTpaallCommand.class);
     }

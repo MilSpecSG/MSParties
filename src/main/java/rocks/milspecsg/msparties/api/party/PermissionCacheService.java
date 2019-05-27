@@ -15,6 +15,7 @@ public interface PermissionCacheService {
     String ASSIGN_RANKS = "assign_ranks";
     String KICK = "kick";
     String BAN = "ban";
+    String TPAALL = "tpaall";
 
     /**
      * @param id         {@link ObjectId} id of {@link Party} to set
@@ -51,6 +52,7 @@ public interface PermissionCacheService {
      * @return Whether the given rank has access to the given permission.
      * <p>
      * All ranks at or above the saved permission index will have the permission
+     * </p>
      */
     boolean check(ObjectId id, String permission, Integer rankIndex);
 
@@ -59,7 +61,11 @@ public interface PermissionCacheService {
      * @param permission {@link String} permission value to check
      * @return {@link Integer} rankIndex of the specified permission and party
      *
-     * Precondition: id and permission must exist in the cache, see {@link #checkSet(ObjectId, String)}
+     * <p>
+     * Precondition: id and permission must exist in the cache,
+     * </p>
+     *
+     * @see #checkSet(ObjectId, String)
      */
     Integer getRankIndex(ObjectId id, String permission);
 

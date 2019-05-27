@@ -1,7 +1,6 @@
 package rocks.milspecsg.msparties.api.party;
 
 import org.bson.types.ObjectId;
-import org.checkerframework.checker.nullness.Opt;
 import org.mongodb.morphia.query.Query;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
@@ -103,19 +102,29 @@ public interface PartyRepository extends Repository<Party> {
      */
     CompletableFuture<PermissibleResult> disbandParty(String name, User user);
 
+
+
+//    /**
+//     * @param id {@link ObjectId} Name of {@link Party} to be modified
+//     * @param user {@link User} to put to party
+//     * @return {@link UpdateResult} with information about the modification
+//     */
+//    CompletableFuture<PermissibleResult> joinParty(ObjectId id, User user);
+
     /**
      * @param name {@link String} Name of {@link Party} to be modified
      * @param user {@link User} to put to party
      * @return {@link UpdateResult} with information about the modification
      */
-    CompletableFuture<PermissibleResult> joinParty(String name, User user);
+    CompletableFuture<PermissibleResult> join(String name, User user);
+
 
     /**
      * @param name {@link String} Name of {@link Party} to be modified
      * @param user {@link User} to remove from party
      * @return {@link UpdateResult} with information about the modification
      */
-    CompletableFuture<PermissibleResult> leaveParty(String name, User user, Optional<User> newLeader);
+    CompletableFuture<PermissibleResult> leave(String name, User user);
 
     /**
      * @param name    {@link String} Name of {@link Party} to be modified
@@ -139,6 +148,14 @@ public interface PartyRepository extends Repository<Party> {
      */
     CompletableFuture<PermissibleResult> inviteUser(String name, User user, Player targetPlayer);
 
+    CompletableFuture<PermissibleResult> tpaall(String name, User user);
+
+    CompletableFuture<PermissibleResult> setRank(String name, User user, UUID targetUser, int rankIndex);
+
+    CompletableFuture<PermissibleResult> setPrivacy(String name, User user, String newPrivacy);
+
+    CompletableFuture<PermissibleResult> getPrivacy(String name);
+
     /**
      * @param name {@link String} Value to check
      * @return All parties that contain {@code name} in their name
@@ -150,6 +167,11 @@ public interface PartyRepository extends Repository<Party> {
      * @return First party that contains {@code name} in its name
      */
     CompletableFuture<Optional<? extends Party>> getOneContains(String name);
+
+    /**
+     * @return All parties
+     */
+    CompletableFuture<List<? extends Party>> getAll();
 
     /**
      * @param name {@link String} Value to check
@@ -187,8 +209,15 @@ public interface PartyRepository extends Repository<Party> {
      */
     CompletableFuture<Optional<? extends Party>> getOneForMember(ObjectId id);
 
+    CompletableFuture<Optional<Boolean>> isIn(Party party, User user);
+
+    CompletableFuture<Optional<Boolean>> isIn(ObjectId id, User user);
 
     CompletableFuture<Optional<Boolean>> isIn(String name, User user);
+
+    CompletableFuture<Optional<Integer>> getSize(Party party);
+
+    CompletableFuture<Optional<Integer>> getSize(String name);
 
     /**
      * @param party {@link Party} to check
@@ -277,6 +306,8 @@ public interface PartyRepository extends Repository<Party> {
      * </p>
      */
     CompletableFuture<Boolean> check(ObjectId id, String permission, User user);
+
+    CompletableFuture<Optional<? extends Party>> fullCheck(String name, String permission, User user);
 
     CompletableFuture<Optional<ObjectId>> getId(String name);
 

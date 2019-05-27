@@ -25,6 +25,7 @@ import java.util.stream.Collectors;
 
 public class PartyCommandManager implements CommandManager {
 
+    protected PartyRepository partyRepository;
     protected PartyNameCacheService partyNameCacheService;
 
     public static Map<List<String>, CommandSpec> subCommands = new HashMap<>();
@@ -52,10 +53,16 @@ public class PartyCommandManager implements CommandManager {
     protected PartyJoinCommand partyJoinCommand;
 
     @Inject
+    protected PartyLeaveCommand partyLeaveCommand;
+
+    @Inject
     protected PartyListCommand partyListCommand;
 
     @Inject
     protected PartyMembersCommand partyMembersCommand;
+
+    @Inject
+    protected PartyPrivacyCommand partyPrivacyCommand;
 
     @Inject
     protected PartySetRankCommand partySetRankCommand;
@@ -65,7 +72,8 @@ public class PartyCommandManager implements CommandManager {
 
 
     @Inject
-    public PartyCommandManager(PartyNameCacheService partyNameCacheService) {
+    public PartyCommandManager(PartyRepository partyRepository, PartyNameCacheService partyNameCacheService) {
+        this.partyRepository = partyRepository;
         this.partyNameCacheService = partyNameCacheService;
     }
 
@@ -77,7 +85,7 @@ public class PartyCommandManager implements CommandManager {
                 .description(Text.of("Accept a request"))
                 .permission(PluginPermissions.ACCEPT_COMMAND)
                 .arguments(
-                        GenericArguments.optional(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions))
+                        GenericArguments.optionalWeak(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions))
                 )
                 .executor(partyAcceptCommand)
                 .build());
@@ -96,7 +104,7 @@ public class PartyCommandManager implements CommandManager {
                 .description(Text.of("Disband party"))
                 .permission(PluginPermissions.DISBAND_COMMAND)
                 .arguments(
-                        GenericArguments.optional(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions))
+                        GenericArguments.optionalWeak(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions))
                 )
                 .executor(partyDisbandCommand)
                 .build());
@@ -105,7 +113,7 @@ public class PartyCommandManager implements CommandManager {
                 .description(Text.of("Show party info"))
                 .permission(PluginPermissions.INFO_COMMAND)
                 .arguments(
-                        GenericArguments.optional(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions))
+                        GenericArguments.optionalWeak(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions))
                 )
                 .executor(partyInfoCommand)
                 .build());
@@ -120,8 +128,8 @@ public class PartyCommandManager implements CommandManager {
                 .description(Text.of("Create a party"))
                 .permission(PluginPermissions.INVITE_COMMAND)
                 .arguments(
-                        GenericArguments.optional(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions)),
-                        GenericArguments.onlyOne(GenericArguments.player(Text.of("player")))
+                        GenericArguments.onlyOne(GenericArguments.player(Text.of("player"))),
+                        GenericArguments.optionalWeak(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions))
                 )
                 .executor(partyInviteCommand)
                 .build());
@@ -130,16 +138,25 @@ public class PartyCommandManager implements CommandManager {
                 .description(Text.of("Join a party"))
                 .permission(PluginPermissions.JOIN_COMMAND)
                 .arguments(
-                        GenericArguments.string(Text.of("name"))
+                        GenericArguments.optionalWeak(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions))
                 )
                 .executor(partyJoinCommand)
+                .build());
+
+        subCommands.put(Arrays.asList("leave", "l"), CommandSpec.builder()
+                .description(Text.of("Leave a party"))
+                .permission(PluginPermissions.LEAVE_COMMAND)
+                .arguments(
+                        GenericArguments.optionalWeak(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions))
+                )
+                .executor(partyLeaveCommand)
                 .build());
 
         subCommands.put(Arrays.asList("list", "l"), CommandSpec.builder()
                 .description(Text.of("List all parties"))
                 .permission(PluginPermissions.LIST_COMMAND)
                 .arguments(
-                        GenericArguments.string(Text.of("name"))
+                        GenericArguments.optional(GenericArguments.string(Text.of("search")))
                 )
                 .executor(partyListCommand)
                 .build());
@@ -148,16 +165,27 @@ public class PartyCommandManager implements CommandManager {
                 .description(Text.of("List all members of a party"))
                 .permission(PluginPermissions.MEMBERS_COMMAND)
                 .arguments(
-                        GenericArguments.optional(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions))
+                        GenericArguments.optionalWeak(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions))
                 )
                 .executor(partyMembersCommand)
                 .build());
 
-        subCommands.put(Arrays.asList("setrank", "sr"), CommandSpec.builder()
-                .description(Text.of("List all parties"))
-                .permission(PluginPermissions.JOIN_COMMAND)
+        subCommands.put(Arrays.asList("privacy", "p"), CommandSpec.builder()
+                .description(Text.of("Get or set privacy of a party"))
+                .permission(PluginPermissions.PRIVACY_COMMAND)
                 .arguments(
-                        GenericArguments.optional(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions))
+                        GenericArguments.optionalWeak(GenericArguments.choices(Text.of("privacy"), () -> Arrays.asList("public", "private"), Text::of)),
+                        GenericArguments.optionalWeak(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions))
+                ).executor(partyPrivacyCommand)
+                .build());
+
+        subCommands.put(Arrays.asList("setrank", "sr"), CommandSpec.builder()
+                .description(Text.of("Set rank"))
+                .permission(PluginPermissions.SET_RANK_COMMAND)
+                .arguments(
+                        GenericArguments.onlyOne(GenericArguments.player(Text.of("player"))),
+                        GenericArguments.integer(Text.of("rankIndex")),
+                        GenericArguments.optionalWeak(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions))
                 )
                 .executor(partySetRankCommand)
                 .build());
@@ -166,7 +194,7 @@ public class PartyCommandManager implements CommandManager {
                 .description(Text.of("Send a teleport request to your clan"))
                 .permission(PluginPermissions.TPAALL_COMMAND)
                 .arguments(
-                        GenericArguments.optional(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions))
+                        GenericArguments.optionalWeak(GenericArguments.withSuggestions(GenericArguments.string(Text.of("party")), partyNameCacheService::getSuggestions))
                 )
                 .executor(partyTpaallCommand)
                 .build());
@@ -232,12 +260,23 @@ public class PartyCommandManager implements CommandManager {
         }
     }
 
+    static <T> Optional<T> handleManyOptional(Player player, List<T> list, Text ifNone, Runnable ifMany) {
+        if (list.size() == 0) {
+            player.sendMessage(ifNone);
+        } else if (list.size() == 1) {
+            return Optional.of(list.get(0));
+        } else {
+            ifMany.run();
+        }
+        return Optional.empty();
+    }
+
     static void handleMultiplePartyCommand(Supplier<Optional<String>> optionalNameSupplier, Player player, BiConsumer<String, Player> ifOne, PartyRepository partyRepository, String command) {
         Optional<String> optionalName = optionalNameSupplier.get();
         if (optionalName.isPresent()) {
             ifOne.accept(optionalName.get(), player);
         } else {
-            partyRepository.getAllForMember(player.getUniqueId()).thenAcceptAsync(parties -> handleManyOptional(player, parties, party -> Optional.of(party.name), ifOne, Text.of(TextColors.RED, "You are not currently in a party"), () -> listCurrentPartiesToPlayer(player, parties, command)));
+            partyRepository.getAllForMember(player.getUniqueId()).thenAcceptAsync(parties -> handleManyOptional(player, parties, party -> Optional.of(party.name), ifOne, Text.of(TextColors.RED, "You are not currently in a ", partyRepository.getDefaultIdentifierSingularLower()), () -> listCurrentPartiesToPlayer(player, parties, command)));
         }
     }
 

@@ -1,49 +1,45 @@
 package rocks.milspecsg.msparties.commands.party;
 
 import com.google.inject.Inject;
-import org.bson.types.ObjectId;
 import org.spongepowered.api.command.CommandException;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
 import org.spongepowered.api.command.spec.CommandExecutor;
 import org.spongepowered.api.entity.living.player.Player;
-import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-import rocks.milspecsg.msparties.api.member.MemberRepository;
-import rocks.milspecsg.msparties.api.member.TeleportationCacheService;
+import rocks.milspecsg.msparties.PluginInfo;
 import rocks.milspecsg.msparties.api.party.PartyRepository;
 
 import java.util.Optional;
-import java.util.Set;
 
-public class PartyTpaallCommand implements CommandExecutor {
+public class PartyLeaveCommand implements CommandExecutor {
 
     protected PartyRepository partyRepository;
-    protected MemberRepository memberRepository;
-    protected TeleportationCacheService teleportationCacheService;
 
     @Inject
-    public PartyTpaallCommand(PartyRepository partyRepository, MemberRepository memberRepository, TeleportationCacheService teleportationCacheService) {
+    public PartyLeaveCommand(PartyRepository partyRepository) {
         this.partyRepository = partyRepository;
-        this.memberRepository = memberRepository;
-        this.teleportationCacheService = teleportationCacheService;
     }
 
     @Override
     public CommandResult execute(CommandSource source, CommandContext context) throws CommandException {
-        Optional<String> optionalName = context.getOne(Text.of("party"));
+        Optional<String> optionalParty = context.getOne(Text.of("party"));
+
         if (source instanceof Player) {
+
             Player player = (Player) source;
-            PartyCommandManager.handleMultiplePartyCommand(() -> optionalName, player, this::handle, partyRepository, "/p here [<party>]");
+
+            PartyCommandManager.handleMultiplePartyCommand(() -> optionalParty, player, this::handleName, partyRepository, "/p leave [<party>]");
+
             return CommandResult.success();
         } else {
             throw new CommandException(Text.of(TextColors.RED, "Command can only be run as player"));
         }
     }
 
-    private void handle(String name, Player source) {
-        partyRepository.tpaall(name, source).thenAcceptAsync(permissibleResult -> source.sendMessage(permissibleResult.getMessage()));
+    private void handleName(String name, Player player) {
+        partyRepository.leave(name, player).thenAcceptAsync(permissibleResult -> player.sendMessage(PluginInfo.PluginPrefix.concat(permissibleResult.getMessage())));
     }
 }

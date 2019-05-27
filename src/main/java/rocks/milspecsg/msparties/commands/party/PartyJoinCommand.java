@@ -24,13 +24,13 @@ public class PartyJoinCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource source, CommandContext context) throws CommandException {
-        Optional<String> optionalName = context.getOne(Text.of("name"));
+        Optional<String> optionalParty = context.getOne(Text.of("party"));
 
         if (source instanceof Player) {
             Player player = (Player) source;
-            if (!optionalName.isPresent()) throw new CommandException(Text.of(TextColors.RED, "Missing name"));
+            if (!optionalParty.isPresent()) throw new CommandException(Text.of(TextColors.RED, "Missing party"));
 
-            partyRepository.joinParty(optionalName.get(), player).thenAcceptAsync(result -> player.sendMessage(result.getMessage()));
+            partyRepository.join(optionalParty.get(), player).thenAcceptAsync(result -> player.sendMessage(result.getMessage()));
 
             return CommandResult.success();
         } else {

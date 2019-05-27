@@ -19,7 +19,7 @@ public class Party extends Dbo {
     public UUID leaderUUID;
     public Map<ObjectId, Integer> members;
     public List<Rank> ranks;
-    public boolean inviteOnly;
+    public String privacy;
     public Map<String, Integer> permissions;
 
     public Text getTitle() {

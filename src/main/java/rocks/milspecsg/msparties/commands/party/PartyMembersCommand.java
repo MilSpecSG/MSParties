@@ -80,7 +80,7 @@ public class PartyMembersCommand implements CommandExecutor {
 
             for (String name : map.keySet()) {
                 Rank rank = map.get(name);
-                textList.add(Text.of(rank.getColor(), name, " (", rank.name, ")"));
+                textList.add(Text.of(rank.getColor(), name, " - ", rank.index ," - (", rank.name, ")"));
             }
             textList.sort(Text::compareTo);
 

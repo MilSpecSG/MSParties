@@ -10,6 +10,7 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
+import rocks.milspecsg.msparties.PluginInfo;
 import rocks.milspecsg.msparties.api.member.MemberRepository;
 import rocks.milspecsg.msparties.api.party.PartyInvitationCacheService;
 import rocks.milspecsg.msparties.api.party.PartyRepository;
@@ -29,22 +30,25 @@ public class PartyInviteCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(CommandSource source, CommandContext context) throws CommandException {
-        Optional<String> optionalName = context.getOne(Text.of("name"));
+        Optional<String> optionalName = context.getOne(Text.of("party"));
         Optional<Player> optionalPlayer = context.getOne(Text.of("player"));
 
         if (source instanceof Player) {
             Player player = (Player) source;
             if (!optionalPlayer.isPresent()) throw new CommandException(Text.of(TextColors.RED, "Missing player"));
-
             if (optionalName.isPresent()) {
-                partyRepository.inviteUser(optionalName.get(), player, optionalPlayer.get());
+                handle(optionalName.get(), player, optionalPlayer.get());
             } else {
-                partyRepository.getAllForMember(player.getUniqueId()).thenAcceptAsync(parties -> PartyCommandManager.handleManyOptional(player, optionalPlayer.get(), parties, party -> Optional.of(party.name), partyRepository::inviteUser, Text.of(TextColors.RED, "You are not currently in a party"), () -> PartyCommandManager.listCurrentPartiesToPlayer(player, parties, "/p invite <name>")));
+                partyRepository.getAllForMember(player.getUniqueId()).thenAcceptAsync(parties -> PartyCommandManager.handleManyOptional(player, optionalPlayer.get(), parties, party -> Optional.of(party.name), this::handle, Text.of(TextColors.RED, "You are not currently in a party"), () -> PartyCommandManager.listCurrentPartiesToPlayer(player, parties, "/p invite <name> [<party>]")));
             }
 
             return CommandResult.success();
         } else {
             throw new CommandException(Text.of(TextColors.RED, "Command can only be run as player"));
         }
+    }
+
+    private void handle(String name, Player source, Player targetPlayer) {
+        partyRepository.inviteUser(name, source, targetPlayer).thenAcceptAsync(permissibleResult -> source.sendMessage(PluginInfo.PluginPrefix.concat(permissibleResult.getMessage())));
     }
 }

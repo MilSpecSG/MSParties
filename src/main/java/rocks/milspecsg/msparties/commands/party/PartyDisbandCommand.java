@@ -30,12 +30,12 @@ public class PartyDisbandCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(@Root CommandSource source, CommandContext context) throws CommandException {
-        Optional<String> optionalName = context.getOne(Text.of("party"));
+        Optional<String> optionalParty = context.getOne(Text.of("party"));
 
         if (source instanceof Player) {
             Player player = (Player) source;
 
-            PartyCommandManager.handleMultiplePartyCommand(() -> optionalName, player, this::handleName, partyRepository, "/p disband <name>");
+            PartyCommandManager.handleMultiplePartyCommand(() -> optionalParty, player, this::handleName, partyRepository, "/p disband [<party>]");
 
             return CommandResult.success();
         } else {

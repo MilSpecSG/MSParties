@@ -10,10 +10,11 @@ import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import rocks.milspecsg.msparties.ConfigKeys;
-import rocks.milspecsg.msparties.PluginInfo;
+import rocks.milspecsg.msparties.ErrorCodes;
 import rocks.milspecsg.msparties.api.Repository;
 import rocks.milspecsg.msparties.api.config.ConfigurationService;
 import rocks.milspecsg.msparties.api.member.MemberRepository;
+import rocks.milspecsg.msparties.api.member.TeleportationCacheService;
 import rocks.milspecsg.msparties.api.party.*;
 import rocks.milspecsg.msparties.db.mongodb.MongoContext;
 import rocks.milspecsg.msparties.model.Dbo;
@@ -36,6 +37,7 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
     protected PartyCacheService partyCacheService;
     protected MemberRepository memberRepository;
     protected PartyInvitationCacheService partyInvitationCacheService;
+    protected TeleportationCacheService teleportationCacheService;
 
     @Inject
     public ApiPartyRepository(
@@ -45,7 +47,8 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
             PermissionCacheService permissionCacheService,
             PartyCacheService partyCacheService,
             MemberRepository memberRepository,
-            PartyInvitationCacheService partyInvitationCacheService) {
+            PartyInvitationCacheService partyInvitationCacheService,
+            TeleportationCacheService teleportationCacheService) {
         super(mongoContext);
         this.configurationService = configurationService;
         this.nameVerificationService = nameVerificationService;
@@ -53,6 +56,7 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
         this.partyCacheService = partyCacheService;
         this.memberRepository = memberRepository;
         this.partyInvitationCacheService = partyInvitationCacheService;
+        this.teleportationCacheService = teleportationCacheService;
     }
 
 
@@ -86,7 +90,7 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
             party.name = name;
             party.tag = tag;
             party.leaderUUID = leader.getUniqueId();
-            party.inviteOnly = false;
+            party.privacy = "private";
             party.members = new HashMap<>();
             party.members.put(optionalMember.get().getId(), Integer.MAX_VALUE);
 
@@ -96,7 +100,7 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
             // ==== generate default permissions ==== //
             resetPermissions(party).join();
 
-            return new CreateResult<Party>(insertOne(party).join(), "An error occured");
+            return new CreateResult<Party>(insertOne(party).join(), ErrorCodes.getMessage(ErrorCodes.ERROR_INSERTING_INTO_DB));
         });
     }
 
@@ -105,12 +109,8 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
         return CompletableFuture.supplyAsync(() -> {
             Optional<UUID> leaderUUID = getLeaderUUID(name).join();
             if (!leaderUUID.isPresent()) {
-                return PermissibleResult.fail("An error occurred");
+                return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_LEADER_ID));
             }
-
-            Sponge.getServer().getConsole().sendMessage(Text.of(PluginInfo.PluginPrefix, "LeaderUUID: ", leaderUUID.get()));
-            Sponge.getServer().getConsole().sendMessage(Text.of(PluginInfo.PluginPrefix, "UserUUID: ", user.getUniqueId()));
-
 
             if (!leaderUUID.get().equals(user.getUniqueId())) {
                 return PermissibleResult.fail("You must be party leader to disband");
@@ -119,31 +119,73 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
 //            if (!newLeader.isPresent() && party.members.keySet().size() > 1) {
 //                return PermissibleResult.fail("You must specify a new leader, or the party must be empty");
 //            }
+            partyCacheService.remove(name);
+
             return mongoContext.datastore.delete(asQuery(name)).getN() > 0
-                    ? PermissibleResult.success(Text.of(TextColors.GREEN, "Successfully abandoned ", TextColors.YELLOW, name))
-                    : PermissibleResult.fail("An error occurred");
+                    ? PermissibleResult.success(Text.of(TextColors.GRAY, "Successfully disbanded ", TextColors.YELLOW, name))
+                    : PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_DELETING_FROM_DB));
         });
     }
 
+//
+//    @Override
+//    public CompletableFuture<PermissibleResult> joinParty(ObjectId id, User user) {
+//        return CompletableFuture.supplyAsync(() -> {
+//            boolean hasInvitation = partyInvitationCacheService.hasInvitation(id, user.getUniqueId());
+//            Optional<? extends Party> optionalParty = getOne(id).join();
+//            if (!optionalParty.isPresent()) {
+//                return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_FROM_DB));
+//            }
+//            if (!optionalParty.map(p -> p.privacy.equalsIgnoreCase("private")).orElse(true) || hasInvitation) {
+//
+//                Optional<ObjectId> optionalMemberId = memberRepository.getId(user.getUniqueId()).join();
+//
+//                if (!optionalMemberId.isPresent()) {
+//                    return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_MEMBER_ID));
+//                }
+//
+//                if (isIn(optionalParty.get(), user).join().orElse(false)) {
+//                    return PermissibleResult.fail("You are already in this party");
+//                }
+//
+//                if (mongoContext.datastore.update(asQuery(id), createUpdateOperations().set("members." + optionalMemberId.get(), 0)).getUpdatedCount() > 0) {
+//                    partyCacheService.getOne(id).ifPresent(party -> {
+//                        if (party.members != null) party.members.put(optionalMemberId.get(), 0);
+//                    });
+//                    return PermissibleResult.success(Text.of(TextColors.GREEN, "Successfully joined ", TextColors.YELLOW, optionalParty.get().name));
+//                } else {
+//                    return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_FROM_DB));
+//                }
+//            } else {
+//                return PermissibleResult.fail(Text.of(TextColors.RED, "You do not have an invitation for ", TextColors.YELLOW, optionalParty.get().name));
+//            }
+//        });
+//    }
+
     @Override
-    public CompletableFuture<PermissibleResult> joinParty(String name, User user) {
+    public CompletableFuture<PermissibleResult> join(String name, User user) {
         return CompletableFuture.supplyAsync(() -> {
             Optional<Boolean> hasInvitation = getId(name).join().map(id -> partyInvitationCacheService.hasInvitation(id, user.getUniqueId()));
-            if (!getOne(name).join().map(p -> p.inviteOnly).orElse(true) || hasInvitation.isPresent() && hasInvitation.get()) {
+            if (!getOne(name).join().map(p -> p.privacy.equalsIgnoreCase("private")).orElse(true) || hasInvitation.isPresent() && hasInvitation.get()) {
 
                 Optional<ObjectId> optionalMemberId = memberRepository.getId(user.getUniqueId()).join();
 
                 if (!optionalMemberId.isPresent()) {
-                    return PermissibleResult.fail("An error occurred");
+                    return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_MEMBER_ID));
                 }
 
                 if (isIn(name, user).join().orElse(false)) {
                     return PermissibleResult.fail("You are already in this party");
                 }
 
-                return memberRepository.getId(user.getUniqueId()).join().map(objectId -> mongoContext.datastore.update(asQuery(name), createUpdateOperations().set("members." + objectId, 0)).getUpdatedCount() > 0
-                        ? PermissibleResult.success(Text.of(TextColors.GREEN, "Successfully joined ", TextColors.YELLOW, name))
-                        : PermissibleResult.fail("An error occurred")).orElse(PermissibleResult.fail());
+                if (mongoContext.datastore.update(asQuery(name), createUpdateOperations().set("members." + optionalMemberId.get(), 0)).getUpdatedCount() > 0) {
+                    partyCacheService.getOne(name).ifPresent(party -> {
+                        if (party.members != null) party.members.put(optionalMemberId.get(), 0);
+                    });
+                    return PermissibleResult.success(Text.of(TextColors.GRAY, "Successfully joined ", TextColors.YELLOW, name));
+                } else {
+                    return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_FROM_DB));
+                }
             } else {
                 return PermissibleResult.fail(Text.of(TextColors.RED, "You do not have an invitation for ", TextColors.YELLOW, name));
             }
@@ -151,32 +193,185 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
     }
 
     @Override
-    public CompletableFuture<PermissibleResult> leaveParty(String name, User user, Optional<User> newLeader) {
-        return CompletableFuture.supplyAsync(PermissibleResult::fail);
+    public CompletableFuture<PermissibleResult> leave(String name, User user) {
+        return CompletableFuture.supplyAsync(() -> {
+            if (isIn(name, user).join().orElse(false)) {
+
+                Optional<UUID> optionalLeaderUUID = getLeaderUUID(name).join();
+                if (!optionalLeaderUUID.isPresent()) {
+                    return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_LEADER_ID));
+                }
+
+                Optional<? extends Party> optionalParty = getOne(name).join();
+                if (!optionalParty.isPresent()) {
+                    return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_FROM_DB));
+                }
+
+                Optional<Integer> optionalSize = getSize(optionalParty.get()).join();
+                if (!optionalSize.isPresent()) {
+                    return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_FROM_DB));
+                }
+
+                // user cannot leave if they are leader and party size != 1
+                if (user.getUniqueId().equals(optionalLeaderUUID.get()) && optionalSize.get() > 1) {
+                    return PermissibleResult.fail("You cannot leave a " + getDefaultIdentifierSingularLower() + " as leader unless you are the only player in it\n" +
+                            "You must appoint another leader before leaving"); // TODO: put command in here
+                } else if (optionalSize.get() == 1) {
+                    return disbandParty(name, user).join();
+                }
+
+                Optional<ObjectId> optionalMemberId = memberRepository.getId(user.getUniqueId()).join();
+
+                if (!optionalMemberId.isPresent()) {
+                    return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_MEMBER_ID));
+                }
+
+                if (mongoContext.datastore.update(asQuery(name), createUpdateOperations().unset("members." + optionalMemberId.get())).getUpdatedCount() > 0) {
+                    partyCacheService.getOne(name).ifPresent(party -> {
+                        if (party.members != null) party.members.remove(optionalMemberId.get());
+                    });
+                    return PermissibleResult.success(Text.of(TextColors.GRAY, "Successfully left ", TextColors.YELLOW, name));
+                } else {
+                    return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_FROM_DB));
+                }
+
+            } else {
+                return PermissibleResult.fail(Text.of(TextColors.RED, "You are not in ", TextColors.YELLOW, name));
+            }
+        });
     }
 
     @Override
     public CompletableFuture<PermissibleResult> nameParty(String name, String newName, User user) {
-        return CompletableFuture.supplyAsync(PermissibleResult::fail);
+        return fullCheck(name, PermissionCacheService.EDIT_NAME, user).thenApplyAsync(optionalParty -> {
+
+            if (!optionalParty.isPresent()) {
+                return PermissibleResult.fail();
+            }
+
+            if (!nameVerificationService.isOk(newName)) {
+                return PermissibleResult.fail("Invalid name");
+            }
+
+            if (mongoContext.datastore.update(asQuery(name), createUpdateOperations().set("name", newName)).getUpdatedCount() > 0) {
+                partyCacheService.getOne(name).ifPresent(party -> party.name = newName);
+                return PermissibleResult.success(Text.of(TextColors.GRAY, "Successfully renamed ", TextColors.YELLOW, name, TextColors.GRAY, " to ", TextColors.YELLOW, newName));
+            } else {
+                return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_FROM_DB));
+            }
+        });
     }
 
     @Override
     public CompletableFuture<PermissibleResult> tagParty(String name, String newTag, User user) {
-        return CompletableFuture.supplyAsync(PermissibleResult::fail);
+        return fullCheck(name, PermissionCacheService.EDIT_NAME, user).thenApplyAsync(optionalParty -> {
+
+            if (!nameVerificationService.isOk(newTag)) {
+                return PermissibleResult.fail("Invalid tag");
+            }
+
+            if (mongoContext.datastore.update(asQuery(name), createUpdateOperations().set("tag", newTag)).getUpdatedCount() > 0) {
+                partyCacheService.getOne(name).ifPresent(party -> party.tag = newTag);
+                return PermissibleResult.success(Text.of(TextColors.GRAY, "Successfully retagged ", TextColors.YELLOW, name, TextColors.GRAY, " to ", TextColors.YELLOW, newTag));
+            } else {
+                return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_FROM_DB));
+            }
+        });
     }
 
     @Override
     public CompletableFuture<PermissibleResult> inviteUser(String name, User user, Player targetPlayer) {
-        return CompletableFuture.supplyAsync(() -> getOne(name).join().map(party -> {
-            if (check(party.getId(), PermissionCacheService.INVITE, user).join()) {
-
-                partyInvitationCacheService.put(party.getId(), targetPlayer.getUniqueId());
-
-                return PermissibleResult.success(Text.of(TextColors.GREEN, "Successfully invited ", TextColors.YELLOW, targetPlayer.getName(), TextColors.GREEN, " to ", party.name));
-            } else {
+        return fullCheck(name, PermissionCacheService.INVITE, user).thenApplyAsync(optionalParty -> {
+            if (!optionalParty.isPresent()) {
                 return PermissibleResult.fail();
             }
-        }).orElse(PermissibleResult.fail()));
+            partyInvitationCacheService.sendRequest(user, targetPlayer, optionalParty.get());
+            return PermissibleResult.success(Text.of(TextColors.GRAY, "You have sent ", TextColors.YELLOW, targetPlayer.getName(), TextColors.GRAY, " an invitation to join ", TextColors.YELLOW, optionalParty.get().name));
+        });
+    }
+
+    @Override
+    public CompletableFuture<PermissibleResult> tpaall(String name, User user) {
+        Sponge.getServer().getConsole().sendMessage(Text.of("test 1"));
+        return fullCheck(name, PermissionCacheService.TPAALL, user).thenApplyAsync(optionalParty -> {
+            Sponge.getServer().getConsole().sendMessage(Text.of("test 2"));
+
+            if (!optionalParty.isPresent()) {
+                return PermissibleResult.fail();
+            }
+
+            Sponge.getServer().getConsole().sendMessage(Text.of("test 3"));
+
+            teleportationCacheService.sendRequest(user, optionalParty.get());
+            return PermissibleResult.success(Text.of(TextColors.GRAY, "You have successfully sent a teleport request to ", TextColors.YELLOW, optionalParty.get().name));
+        });
+    }
+
+    @Override
+    public CompletableFuture<PermissibleResult> setRank(String name, User user, UUID targetUserUUID, int rankIndex) {
+        return fullCheck(name, PermissionCacheService.ASSIGN_RANKS, user).thenApplyAsync(optionalParty -> {
+            if (!optionalParty.isPresent()) {
+                return PermissibleResult.fail();
+            }
+
+            if (rankIndex < 0) {
+                return PermissibleResult.fail("Invalid rank index");
+            }
+
+            Optional<User> optionalTargetUser = memberRepository.getUser(targetUserUUID);
+            if (!optionalTargetUser.isPresent()) {
+                return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_FROM_DB));
+            }
+
+            if (!isIn(optionalParty.get(), optionalTargetUser.get()).join().orElse(false)) {
+                return PermissibleResult.fail("Player is not in " + getDefaultIdentifierSingularLower());
+            }
+
+            Optional<ObjectId> optionalMemberId = memberRepository.getId(targetUserUUID).join();
+
+            if (!optionalMemberId.isPresent()) {
+                return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_MEMBER_ID));
+            }
+
+            if (mongoContext.datastore.update(asQuery(name), createUpdateOperations().set("members." + optionalMemberId.get(), rankIndex)).getUpdatedCount() > 0) {
+                partyCacheService.getOne(name).ifPresent(party -> party.members.put(optionalMemberId.get(), rankIndex));
+                return PermissibleResult.success(Text.of(TextColors.GRAY, "Successfully set ", TextColors.YELLOW, optionalTargetUser.get().getName(), TextColors.GRAY, " to rank ", TextColors.YELLOW, rankIndex));
+            } else {
+                return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_FROM_DB));
+            }
+        });
+    }
+
+
+    @Override
+    public CompletableFuture<PermissibleResult> setPrivacy(String name, User user, String newPrivacy) {
+        return fullCheck(name, PermissionCacheService.EDIT_PRIVACY, user).thenApplyAsync(optionalParty -> {
+            if (!optionalParty.isPresent()) {
+                return PermissibleResult.fail();
+            }
+
+            if (!(newPrivacy.equalsIgnoreCase("public") || newPrivacy.equalsIgnoreCase("private"))) {
+                return PermissibleResult.fail("Invalid selection. Options: 'public' or 'private'");
+            }
+
+            if (mongoContext.datastore.update(asQuery(name), createUpdateOperations().set("privacy", newPrivacy)).getUpdatedCount() > 0) {
+                partyCacheService.getOne(name).ifPresent(party -> party.privacy = newPrivacy);
+                return PermissibleResult.success(Text.of(TextColors.GRAY, "Successfully changed privacy of ", TextColors.YELLOW, optionalParty.get().name, TextColors.GRAY, " to ", TextColors.YELLOW, newPrivacy));
+            } else {
+                return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_FROM_DB));
+            }
+        });
+    }
+
+    @Override
+    public CompletableFuture<PermissibleResult> getPrivacy(String name) {
+        return getOne(name).thenApplyAsync(optionalParty -> {
+            if (optionalParty.isPresent()) {
+                return PermissibleResult.success(Text.of(TextColors.GRAY, "Privacy of ", TextColors.YELLOW, optionalParty.get().name, TextColors.GRAY, " is ", TextColors.YELLOW, optionalParty.get().privacy));
+            } else {
+                return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_FROM_DB));
+            }
+        });
     }
 
     @Override
@@ -186,7 +381,7 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
 
     @Override
     public CompletableFuture<List<? extends Party>> getAllContains(String name) {
-        return CompletableFuture.supplyAsync(() -> asQuery().field("name").containsIgnoreCase(name).asList());
+        return CompletableFuture.supplyAsync(saveToCache(partyCacheService, () -> asQuery().field("name").containsIgnoreCase(name).asList()));
     }
 
     @Override
@@ -195,8 +390,13 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
     }
 
     @Override
+    public CompletableFuture<List<? extends Party>> getAll() {
+        return CompletableFuture.supplyAsync(saveToCache(partyCacheService, () -> asQuery().asList()));
+    }
+
+    @Override
     public CompletableFuture<List<? extends Party>> getAll(String name) {
-        return CompletableFuture.supplyAsync(() -> asQuery().field("name").equalIgnoreCase(name).asList());
+        return CompletableFuture.supplyAsync(saveToCache(partyCacheService, () -> asQuery().field("name").equalIgnoreCase(name).asList()));
     }
 
     @Override
@@ -206,7 +406,7 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
 
     @Override
     public CompletableFuture<List<? extends Party>> getAllForMember(UUID userUUID) {
-        return CompletableFuture.supplyAsync(() -> memberRepository.getId(userUUID).join().map(id -> getAllForMember(id).join()).orElse(new ArrayList<>()));
+        return CompletableFuture.supplyAsync(saveToCache(partyCacheService, () -> memberRepository.getId(userUUID).join().map(id -> getAllForMember(id).join()).orElse(new ArrayList<>())));
     }
 
     @Override
@@ -232,10 +432,29 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
 //                );
 //    }
 
+    @Override
+    public CompletableFuture<Optional<Boolean>> isIn(Party party, User user) {
+        return CompletableFuture.supplyAsync(() -> memberRepository.getOneOrGenerate(user.getUniqueId()).join().map(member -> party.members.containsKey(member.getId())));
+    }
+
+    @Override
+    public CompletableFuture<Optional<Boolean>> isIn(ObjectId id, User user) {
+        return CompletableFuture.supplyAsync(() -> getOne(id).join().flatMap(party -> isIn(party, user).join()));
+    }
 
     @Override
     public CompletableFuture<Optional<Boolean>> isIn(String name, User user) {
-        return CompletableFuture.supplyAsync(() -> memberRepository.getOneOrGenerate(user.getUniqueId()).join().map(member -> getAll(name).join().stream().anyMatch(party -> party.members.containsKey(member.getId()))));
+        return CompletableFuture.supplyAsync(() -> getOne(name).join().flatMap(party -> isIn(party, user).join()));
+    }
+
+    @Override
+    public CompletableFuture<Optional<Integer>> getSize(Party party) {
+        return CompletableFuture.supplyAsync(() -> (party == null || party.members == null) ? Optional.empty() : Optional.of(party.members.keySet().size()));
+    }
+
+    @Override
+    public CompletableFuture<Optional<Integer>> getSize(String name) {
+        return CompletableFuture.supplyAsync(() -> getOne(name).join().flatMap(party -> getSize(party).join()));
     }
 
     @Override
@@ -243,13 +462,10 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
         //CompletableFuture<List<Optional<? extends Member>>> completableFuture = toList(party.memberRankMap.keySet().stream().map(u -> memberRepository.getOne(u)).collect(Collectors.toList()));
 
         return CompletableFuture.supplyAsync(() -> {
-//            Map<Integer, Rank> rankIndexNameMap = new HashMap<>();
-//            party.ranks.forEach(rank -> rankIndexNameMap.put(rank.index, rank));
             Map<String, Rank> userRankMap = new HashMap<>();
             party.members.keySet().forEach(id -> memberRepository.getUUID(id).join().ifPresent(uuid -> memberRepository.getUser(uuid)
-                    .ifPresent(user -> party.ranks.stream().filter(rank -> rank.index == party.members.get(id)).findFirst().ifPresent(rank -> userRankMap.put(user.getName(), rank)))));
+                    .ifPresent(user -> party.ranks.stream().filter(rank -> rank.index <= party.members.get(id)).max(Comparator.comparingInt(r -> r.index)).ifPresent(rank -> userRankMap.put(user.getName(), rank)))));
 
-            //list.forEach(m -> m.ifPresent(member -> memberRepository.getUser(m.getRequiredRankIndex().userUUID).ifPresent(user -> userRankMap.put(user.getName(), rankIndexNameMap.getRequiredRankIndex(member.rankIndex)))));
             return userRankMap;
         });
     }
@@ -294,6 +510,13 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
         elderRank.index = 5;
         elderRank.name = "Elder";
         result.add(elderRank);
+
+        Rank memberRank = new Rank();
+        elderRank.color = "gray";
+        elderRank.index = 0;
+        elderRank.name = "Member";
+        result.add(memberRank);
+
         return result;
     }
 
@@ -390,6 +613,19 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
     }
 
     @Override
+    public CompletableFuture<Optional<? extends Party>> fullCheck(String name, String permission, User user) {
+        return CompletableFuture.supplyAsync(() -> {
+            Optional<? extends Party> optionalParty = getOne(name).join();
+            return optionalParty.flatMap(party -> {
+                if (isIn(party, user).join().orElse(false) && check(party.getId(), permission, user).join()) {
+                    return Optional.of(party);
+                }
+                return Optional.empty();
+            });
+        });
+    }
+
+    @Override
     public CompletableFuture<Optional<ObjectId>> getId(String name) {
         return CompletableFuture.supplyAsync(() -> getOne(name).join().map(Dbo::getId));
 //        return CompletableFuture.supplyAsync(() -> {
@@ -403,6 +639,6 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
     }
 
     public CompletableFuture<Optional<Integer>> getRequiredRankIndex(ObjectId id, String permission) {
-        return CompletableFuture.supplyAsync(() -> partyCacheService.getOne(id).map(party -> Optional.of((party.permissions.get(permission))).orElseGet(() -> getOne(id).join().map(p -> p.permissions.get(permission)).orElse(Integer.MAX_VALUE))));
+        return CompletableFuture.supplyAsync(() -> partyCacheService.getOne(id).map(party -> Optional.ofNullable((party.permissions.get(permission))).orElseGet(() -> getOne(id).join().map(p -> p.permissions.get(permission)).orElse(Integer.MAX_VALUE))));
     }
 }

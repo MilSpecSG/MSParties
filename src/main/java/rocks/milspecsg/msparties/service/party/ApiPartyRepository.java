@@ -86,7 +86,7 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
             party.name = name;
             party.tag = tag;
             party.leaderUUID = leader.getUniqueId();
-            party.inviteOnly = true;
+            party.inviteOnly = false;
             party.members = new HashMap<>();
             party.members.put(optionalMember.get().getId(), Integer.MAX_VALUE);
 
@@ -137,9 +137,13 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
                     return PermissibleResult.fail("An error occurred");
                 }
 
-                return mongoContext.datastore.update(asQuery(name), createUpdateOperations().set("members." + memberRepository.getId(user.getUniqueId()), 0)).getUpdatedCount() > 0
+                if (isIn(name, user).join().orElse(false)) {
+                    return PermissibleResult.fail("You are already in this party");
+                }
+
+                return memberRepository.getId(user.getUniqueId()).join().map(objectId -> mongoContext.datastore.update(asQuery(name), createUpdateOperations().set("members." + objectId, 0)).getUpdatedCount() > 0
                         ? PermissibleResult.success(Text.of(TextColors.GREEN, "Successfully joined ", TextColors.YELLOW, name))
-                        : PermissibleResult.fail("An error occurred");
+                        : PermissibleResult.fail("An error occurred")).orElse(PermissibleResult.fail());
             } else {
                 return PermissibleResult.fail(Text.of(TextColors.RED, "You do not have an invitation for ", TextColors.YELLOW, name));
             }
@@ -162,14 +166,17 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
     }
 
     @Override
-    public CompletableFuture<PermissibleResult> inviteUser(Party party, User user, Player targetPlayer) {
-        return CompletableFuture.supplyAsync(() -> {
+    public CompletableFuture<PermissibleResult> inviteUser(String name, User user, Player targetPlayer) {
+        return CompletableFuture.supplyAsync(() -> getOne(name).join().map(party -> {
             if (check(party.getId(), PermissionCacheService.INVITE, user).join()) {
+
+                partyInvitationCacheService.put(party.getId(), targetPlayer.getUniqueId());
+
                 return PermissibleResult.success(Text.of(TextColors.GREEN, "Successfully invited ", TextColors.YELLOW, targetPlayer.getName(), TextColors.GREEN, " to ", party.name));
             } else {
                 return PermissibleResult.fail();
             }
-        });
+        }).orElse(PermissibleResult.fail()));
     }
 
     @Override
@@ -184,7 +191,7 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
 
     @Override
     public CompletableFuture<Optional<? extends Party>> getOneContains(String name) {
-        return CompletableFuture.supplyAsync(ifNotPresent(() -> partyCacheService, service -> service.getOne(party -> party.name.toLowerCase().contains(name.toLowerCase())), () -> getAllContains(name).thenApplyAsync(Repository.single()).join()));
+        return CompletableFuture.supplyAsync(ifNotPresent(partyCacheService, service -> service.getOne(party -> party.name.toLowerCase().contains(name.toLowerCase())), () -> getAllContains(name).thenApplyAsync(Repository.single()).join()));
     }
 
     @Override
@@ -194,7 +201,7 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
 
     @Override
     public CompletableFuture<Optional<? extends Party>> getOne(String name) {
-        return CompletableFuture.supplyAsync(ifNotPresent(() -> partyCacheService, service -> service.getOne(party -> party.name.equals(name)), () -> getAllContains(name).thenApplyAsync(Repository.single()).join()));
+        return CompletableFuture.supplyAsync(ifNotPresent(partyCacheService, service -> service.getOne(party -> party.name.equals(name)), () -> getAllContains(name).thenApplyAsync(Repository.single()).join()));
     }
 
     @Override
@@ -209,7 +216,7 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
 
     @Override
     public CompletableFuture<List<? extends Party>> getAllForMember(ObjectId id) {
-        return CompletableFuture.supplyAsync(() -> asQuery().field("members." + id.toString()).exists().asList());
+        return CompletableFuture.supplyAsync(saveToCache(partyCacheService, () -> asQuery().field("members." + id.toString()).exists().asList()));
     }
 
     @Override
@@ -224,6 +231,12 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
 //                        .collect(Collectors.toList())
 //                );
 //    }
+
+
+    @Override
+    public CompletableFuture<Optional<Boolean>> isIn(String name, User user) {
+        return CompletableFuture.supplyAsync(() -> memberRepository.getOneOrGenerate(user.getUniqueId()).join().map(member -> getAll(name).join().stream().anyMatch(party -> party.members.containsKey(member.getId()))));
+    }
 
     @Override
     public CompletableFuture<Map<String, Rank>> getUserNameRankMap(Party party) {

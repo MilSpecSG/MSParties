@@ -35,7 +35,9 @@ public interface Repository<T extends Dbo> {
         return Repository::single;
     }
 
-    <R extends RepositoryCacheService<T>> Supplier<Optional<? extends T>> ifNotPresent(Supplier<R> repositoryCacheServiceSupplier, Function<R, Optional<? extends T>> fromCache, Supplier<Optional<? extends T>> fromDB);
+    <R extends RepositoryCacheService<T>> Supplier<List<? extends T>> saveToCache(R repositoryCacheService, Supplier<List<? extends T>> fromDB);
+
+    <R extends RepositoryCacheService<T>> Supplier<Optional<? extends T>> ifNotPresent(R repositoryCacheService, Function<R, Optional<? extends T>> fromCache, Supplier<Optional<? extends T>> fromDB);
 
     Supplier<Optional<? extends T>> ifNotPresent(RepositoryCacheService<T> repositoryCacheService, ObjectId id);
 

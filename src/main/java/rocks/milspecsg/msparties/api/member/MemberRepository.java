@@ -33,6 +33,8 @@ public interface MemberRepository extends Repository<Member> {
 
     CompletableFuture<Optional<UUID>> getUUID(ObjectId id);
 
+    CompletableFuture<Optional<User>> getUser(ObjectId id);
+
 
     Query<Member> asQuery(UUID userUUID);
 

@@ -2,6 +2,7 @@ package rocks.milspecsg.msparties.commands.party;
 
 import com.google.inject.Inject;
 import org.spongepowered.api.command.CommandException;
+import org.spongepowered.api.command.CommandManager;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -29,30 +30,12 @@ public class PartyDisbandCommand implements CommandExecutor {
 
     @Override
     public CommandResult execute(@Root CommandSource source, CommandContext context) throws CommandException {
-        Optional<String> optionalName = context.getOne(Text.of("name"));
+        Optional<String> optionalName = context.getOne(Text.of("party"));
 
         if (source instanceof Player) {
             Player player = (Player) source;
 
-            // should not happen
-            if (optionalName.isPresent()) {
-                handleName(optionalName.get(), player);
-            } else {
-                partyRepository.getAllForMember(player.getUniqueId()).thenAcceptAsync(parties -> {
-                            if (parties.size() == 0) {
-                                player.sendMessage(Text.of(TextColors.RED, "You are not currently in a party"));
-                            } else if (parties.size() == 1) {
-                                handleName(parties.get(0).name, player);
-                            } else {
-                                player.sendMessage(Text.of(
-                                        PluginInfo.PluginPrefix, TextColors.RED, "You are in the following parties:\n",
-                                        TextColors.GOLD, parties.stream().map(party -> party.name).collect(Collectors.joining(", ")),
-                                        TextColors.RED, "\nYou must pick one by using /p disband <name>"
-                                ));
-                            }
-                        }
-                );
-            }
+            PartyCommandManager.handleMultiplePartyCommand(() -> optionalName, player, this::handleName, partyRepository, "/p disband <name>");
 
             return CommandResult.success();
         } else {

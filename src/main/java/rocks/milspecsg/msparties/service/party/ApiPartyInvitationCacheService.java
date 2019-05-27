@@ -3,48 +3,49 @@ package rocks.milspecsg.msparties.service.party;
 import com.google.inject.Inject;
 import com.google.inject.Singleton;
 import org.bson.types.ObjectId;
+import rocks.milspecsg.msparties.api.config.ConfigurationService;
 import rocks.milspecsg.msparties.api.party.PartyInvitationCacheService;
 import rocks.milspecsg.msparties.model.misc.PartyInvitation;
+import rocks.milspecsg.msparties.service.ApiCacheInvalidationService;
 
 import java.util.*;
 
 @Singleton
-public class ApiPartyInvitationCacheService implements PartyInvitationCacheService {
+public class ApiPartyInvitationCacheService extends ApiCacheInvalidationService<PartyInvitation> implements PartyInvitationCacheService {
 
-    protected Map<UUID, List<PartyInvitation>> userInvitationMap;
 
     @Inject
-    public ApiPartyInvitationCacheService() {
-        this.userInvitationMap = new HashMap<>();
+    public ApiPartyInvitationCacheService(ConfigurationService configurationService) {
+        super(configurationService);
     }
 
+
     @Override
-    public List<PartyInvitation> getInvitations(UUID userUUID) {
-        List<PartyInvitation> invitations = userInvitationMap.get(userUUID);
-        if (invitations == null) return new ArrayList<>();
-        return invitations;
+    public List<? extends PartyInvitation> getAll(UUID userUUID) {
+        return getAll(partyInvitation -> partyInvitation.targetPlayer.equals(userUUID));
     }
 
     @Override
     public boolean hasInvitation(ObjectId partyId, UUID userUUID) {
-        List<PartyInvitation> invitations = userInvitationMap.get(userUUID);
-        return invitations != null && invitations.stream().anyMatch(partyInvitation -> partyInvitation.partyId.equals(partyId));
+        return getAll(userUUID).stream().anyMatch(partyInvitation -> partyInvitation.partyId.equals(partyId));
     }
 
     @Override
-    public void addInvitation(PartyInvitation partyInvitation, UUID userUUID) {
-        if (userInvitationMap.containsKey(userUUID)) userInvitationMap.get(userUUID).add(partyInvitation);
-        else userInvitationMap.put(userUUID, Collections.singletonList(partyInvitation));
+    public void put(ObjectId partyId, UUID targetPlayer) {
+        PartyInvitation partyInvitation = new PartyInvitation();
+        partyInvitation.partyId = partyId;
+        partyInvitation.targetPlayer = targetPlayer;
+        partyInvitation.message = "";
+        put(partyInvitation);
     }
 
     @Override
-    public boolean removeInvitation(ObjectId partyId, UUID userUUID) {
-        if (!userInvitationMap.containsKey(userUUID)) return false;
-        return userInvitationMap.get(userUUID).removeIf(partyInvitation -> partyInvitation.partyId.equals(partyId));
+    public void remove(ObjectId partyId, UUID targetPlayer) {
+        remove(partyInvitation -> partyInvitation.partyId.equals(partyId) && partyInvitation.targetPlayer.equals(targetPlayer));
     }
 
     @Override
-    public void clearInvitations(UUID userUUID) {
-        userInvitationMap.remove(userUUID);
+    public void clearInvitations(UUID targetPlayer) {
+        remove(partyInvitation -> partyInvitation.targetPlayer.equals(targetPlayer));
     }
 }

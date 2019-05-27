@@ -13,6 +13,7 @@ import rocks.milspecsg.msparties.api.RepositoryCacheService;
 import rocks.milspecsg.msparties.db.mongodb.MongoContext;
 import rocks.milspecsg.msparties.model.Dbo;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 import java.util.function.Function;
@@ -56,9 +57,12 @@ public abstract class ApiRepository<T extends Dbo> implements Repository<T> {
         return asQuery().field("id").equal(id);
     }
 
+    public <R extends RepositoryCacheService<T>> Supplier<List<? extends T>> saveToCache(R repositoryCacheService, Supplier<List<? extends T>> fromDB) {
+        return () -> repositoryCacheService.put(fromDB.get());
+    }
+
     @Override
-    public <R extends RepositoryCacheService<T>> Supplier<Optional<? extends T>> ifNotPresent(Supplier<R> repositoryCacheServiceSupplier, Function<R, Optional<? extends T>> fromCache, Supplier<Optional<? extends T>> fromDB) {
-        R repositoryCacheService = repositoryCacheServiceSupplier.get();
+    public <R extends RepositoryCacheService<T>> Supplier<Optional<? extends T>> ifNotPresent(R repositoryCacheService, Function<R, Optional<? extends T>> fromCache, Supplier<Optional<? extends T>> fromDB) {
         Optional<? extends T> main = fromCache.apply(repositoryCacheService);
         if (main.isPresent()) {
             Sponge.getServer().getConsole().sendMessage(Text.of(PluginInfo.PluginPrefix, "Found in cache"));
@@ -71,7 +75,7 @@ public abstract class ApiRepository<T extends Dbo> implements Repository<T> {
 
     @Override
     public Supplier<Optional<? extends T>> ifNotPresent(RepositoryCacheService<T> repositoryCacheService, ObjectId id) {
-        return ifNotPresent(() -> repositoryCacheService, service -> service.getOne(id), () -> Optional.ofNullable(asQuery(id).get()));
+        return ifNotPresent(repositoryCacheService, service -> service.getOne(id), () -> Optional.ofNullable(asQuery(id).get()));
     }
 
 }

@@ -19,7 +19,7 @@ import java.util.concurrent.atomic.AtomicReference;
 
 public class PartyCreateCommand implements CommandExecutor {
 
-    private PartyRepository partyRepository;
+    protected PartyRepository partyRepository;
 
     @Inject
     public PartyCreateCommand(PartyRepository partyRepository) {
@@ -37,7 +37,7 @@ public class PartyCreateCommand implements CommandExecutor {
             if (!optionalName.isPresent()) throw new CommandException(Text.of("Missing name"));
             if (!optionalTag.isPresent()) throw new CommandException(Text.of("Missing tag"));
 
-            partyRepository.createParty(optionalName.get(), optionalTag.get(), player).thenAcceptAsync(createResult -> {
+            partyRepository.createParty(optionalName.get(), optionalTag.get().toUpperCase(), player).thenAcceptAsync(createResult -> {
                 if (createResult.isSuccess() && createResult.getValue().isPresent()) {
                     Party party = createResult.getValue().get();
                     player.sendMessage(Text.of(

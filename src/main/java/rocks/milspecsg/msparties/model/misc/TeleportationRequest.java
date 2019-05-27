@@ -1,13 +1,15 @@
 package rocks.milspecsg.msparties.model.misc;
 
 import org.bson.types.ObjectId;
+import rocks.milspecsg.msparties.model.core.Party;
 
 import java.util.UUID;
 
-public class PartyInvitation {
+public class TeleportationRequest {
 
-    public ObjectId partyId;
+    public UUID teleportingPlayer;
     public UUID targetPlayer;
+    public ObjectId targetPartyId;
     public String message;
 
 }

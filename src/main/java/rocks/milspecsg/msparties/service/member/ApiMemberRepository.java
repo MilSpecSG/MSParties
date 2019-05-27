@@ -51,7 +51,7 @@ public class ApiMemberRepository extends ApiRepository<Member> implements Member
 
     @Override
     public CompletableFuture<Optional<? extends Member>> getOne(UUID userUUID) {
-        return CompletableFuture.supplyAsync(ifNotPresent(() -> memberCacheService, service -> service.getOne(userUUID), () -> Optional.ofNullable(asQuery(userUUID).get())));
+        return CompletableFuture.supplyAsync(ifNotPresent(memberCacheService, service -> service.getOne(userUUID), () -> Optional.ofNullable(asQuery(userUUID).get())));
     }
 
     @Override
@@ -79,6 +79,11 @@ public class ApiMemberRepository extends ApiRepository<Member> implements Member
     public CompletableFuture<Optional<UUID>> getUUID(ObjectId id) {
         return CompletableFuture.supplyAsync(() -> getOne(id).join().map(member -> member.userUUID));
         //Optional.ofNullable(asQuery(id).project("userUUID", true).get().userUUID);
+    }
+
+    @Override
+    public CompletableFuture<Optional<User>> getUser(ObjectId id) {
+        return CompletableFuture.supplyAsync(() -> getUUID(id).join().flatMap(this::getUser));
     }
 
     @Override

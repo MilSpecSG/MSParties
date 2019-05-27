@@ -132,12 +132,12 @@ public interface PartyRepository extends Repository<Party> {
     CompletableFuture<PermissibleResult> tagParty(String name, String newTag, User user);
 
     /**
-     * @param party        {@link Party} to invite {@link User} to
+     * @param name        {@link String} Name of {@link Party} to invite {@link User} to
      * @param user         {@link User} to invite to party
      * @param targetPlayer
      * @return {@link UpdateResult} with information about the modificatio
      */
-    CompletableFuture<PermissibleResult> inviteUser(Party party, User user, Player targetPlayer);
+    CompletableFuture<PermissibleResult> inviteUser(String name, User user, Player targetPlayer);
 
     /**
      * @param name {@link String} Value to check
@@ -186,6 +186,9 @@ public interface PartyRepository extends Repository<Party> {
      * @return a the first found {@link Party} that a player with the provided {@link ObjectId} is in
      */
     CompletableFuture<Optional<? extends Party>> getOneForMember(ObjectId id);
+
+
+    CompletableFuture<Optional<Boolean>> isIn(String name, User user);
 
     /**
      * @param party {@link Party} to check

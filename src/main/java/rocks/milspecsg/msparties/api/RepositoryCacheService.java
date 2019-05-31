@@ -12,6 +12,6 @@ import java.util.function.Predicate;
 
 public interface RepositoryCacheService<T extends Dbo> extends CacheInvalidationService<T> {
 
-    Optional<? extends T> getOne(ObjectId id);
+    Optional<T> getOne(ObjectId id);
 
 }

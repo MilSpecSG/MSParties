@@ -22,12 +22,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.function.Supplier;
 
-public class PartyPrivacyCommand implements CommandExecutor {
+public class PartyPrivacyCommand<P extends Party> implements CommandExecutor {
 
-    protected PartyRepository partyRepository;
+    protected PartyRepository<P> partyRepository;
 
     @Inject
-    public PartyPrivacyCommand(PartyRepository partyRepository) {
+    public PartyPrivacyCommand(PartyRepository<P> partyRepository) {
         this.partyRepository = partyRepository;
     }
 

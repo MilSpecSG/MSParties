@@ -11,17 +11,18 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import rocks.milspecsg.msparties.api.member.MemberRepository;
 import rocks.milspecsg.msparties.api.party.PartyRepository;
+import rocks.milspecsg.msparties.model.core.Member;
 import rocks.milspecsg.msparties.model.core.Party;
 
 import java.util.Optional;
 
-public class PartyInfoCommand implements CommandExecutor {
+public class PartyInfoCommand<P extends Party, M extends Member> implements CommandExecutor {
 
-    private PartyRepository partyRepository;
-    private MemberRepository memberRepository;
+    private PartyRepository<P> partyRepository;
+    private MemberRepository<M> memberRepository;
 
     @Inject
-    public PartyInfoCommand(PartyRepository partyRepository, MemberRepository memberRepository) {
+    public PartyInfoCommand(PartyRepository<P> partyRepository, MemberRepository<M> memberRepository) {
         this.partyRepository = partyRepository;
         this.memberRepository = memberRepository;
     }

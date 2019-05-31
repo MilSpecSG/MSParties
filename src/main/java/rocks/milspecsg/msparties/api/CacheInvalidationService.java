@@ -21,14 +21,14 @@ public interface CacheInvalidationService<T> {
      * @return {@link Optional} with inserted {@link T} if successfully inserted.
      * Otherwise {@link Optional#empty()}
      */
-    Optional<? extends T> put(T t);
+    Optional<T> put(T t);
 
-    List<? extends T> put(List<? extends T> list);
+    List<T> put(List<T> list);
 
     /**
      * @return A set containing all parties in the cache
      */
-    Set<? extends T> getAll();
+    Set<T> getAll();
 
 
     /**
@@ -40,7 +40,7 @@ public interface CacheInvalidationService<T> {
 
     void remove(Predicate<? super T> predicate);
 
-    List<? extends T> getAll(Predicate<? super T> predicate);
+    List<T> getAll(Predicate<? super T> predicate);
 
-    Optional<? extends T> getOne(Predicate<? super T> predicate);
+    Optional<T> getOne(Predicate<? super T> predicate);
 }

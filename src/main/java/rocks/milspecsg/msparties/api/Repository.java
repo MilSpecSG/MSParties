@@ -13,9 +13,14 @@ import java.util.function.Supplier;
 
 public interface Repository<T extends Dbo> {
 
-    CompletableFuture<Optional<? extends T>> insertOne(T item);
+    /**
+     * @return An empty {@link T}
+     */
+    T generateDefault();
 
-    CompletableFuture<Optional<? extends T>> getOne(ObjectId id);
+    CompletableFuture<Optional<T>> insertOne(T item);
+
+    CompletableFuture<Optional<T>> getOne(ObjectId id);
 
     UpdateOperations<T> createUpdateOperations();
 
@@ -27,18 +32,18 @@ public interface Repository<T extends Dbo> {
 
     Query<T> asQuery(ObjectId id);
 
-    static <U> Optional<? extends U> single(List<? extends U> list) {
+    static <U> Optional<U> single(List<U> list) {
         return list.size() > 0 ? Optional.ofNullable(list.get(0)) : Optional.empty();
     }
 
-    static <U> Function<List<? extends U>, Optional<? extends U>> single() {
+    static <U> Function<List<U>, Optional<U>> single() {
         return Repository::single;
     }
 
-    <R extends RepositoryCacheService<T>> Supplier<List<? extends T>> saveToCache(R repositoryCacheService, Supplier<List<? extends T>> fromDB);
+    <R extends RepositoryCacheService<T>> Supplier<List<T>> saveToCache(R repositoryCacheService, Supplier<List<T>> fromDB);
 
-    <R extends RepositoryCacheService<T>> Supplier<Optional<? extends T>> ifNotPresent(R repositoryCacheService, Function<R, Optional<? extends T>> fromCache, Supplier<Optional<? extends T>> fromDB);
+    <R extends RepositoryCacheService<T>> Supplier<Optional<T>> ifNotPresent(R repositoryCacheService, Function<R, Optional<T>> fromCache, Supplier<Optional<T>> fromDB);
 
-    Supplier<Optional<? extends T>> ifNotPresent(RepositoryCacheService<T> repositoryCacheService, ObjectId id);
+    Supplier<Optional<T>> ifNotPresent(RepositoryCacheService<T> repositoryCacheService, ObjectId id);
 
 }

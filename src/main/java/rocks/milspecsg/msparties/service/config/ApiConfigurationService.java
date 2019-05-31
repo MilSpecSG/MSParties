@@ -18,7 +18,7 @@ import java.util.function.Function;
 import java.util.function.Predicate;
 
 /**
- * Service to load, save and store data from a config file
+ * Service to load and save data from a config file
  *
  * @author Cableguy20
  */

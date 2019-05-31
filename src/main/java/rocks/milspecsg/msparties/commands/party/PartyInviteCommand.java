@@ -19,12 +19,12 @@ import rocks.milspecsg.msparties.model.core.Party;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public class PartyInviteCommand implements CommandExecutor {
+public class PartyInviteCommand<P extends Party> implements CommandExecutor {
 
-    protected PartyRepository partyRepository;
+    protected PartyRepository<P> partyRepository;
 
     @Inject
-    public PartyInviteCommand(PartyRepository partyRepository, MemberRepository memberRepository) {
+    public PartyInviteCommand(PartyRepository<P> partyRepository) {
         this.partyRepository = partyRepository;
     }
 

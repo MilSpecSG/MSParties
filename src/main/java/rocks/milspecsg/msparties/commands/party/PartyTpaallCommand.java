@@ -14,18 +14,20 @@ import org.spongepowered.api.text.format.TextColors;
 import rocks.milspecsg.msparties.api.member.MemberRepository;
 import rocks.milspecsg.msparties.api.member.TeleportationCacheService;
 import rocks.milspecsg.msparties.api.party.PartyRepository;
+import rocks.milspecsg.msparties.model.core.Member;
+import rocks.milspecsg.msparties.model.core.Party;
 
 import java.util.Optional;
 import java.util.Set;
 
-public class PartyTpaallCommand implements CommandExecutor {
+public class PartyTpaallCommand<P extends Party, M extends Member> implements CommandExecutor {
 
-    protected PartyRepository partyRepository;
-    protected MemberRepository memberRepository;
+    protected PartyRepository<P> partyRepository;
+    protected MemberRepository<M> memberRepository;
     protected TeleportationCacheService teleportationCacheService;
 
     @Inject
-    public PartyTpaallCommand(PartyRepository partyRepository, MemberRepository memberRepository, TeleportationCacheService teleportationCacheService) {
+    public PartyTpaallCommand(PartyRepository<P> partyRepository, MemberRepository<M> memberRepository, TeleportationCacheService teleportationCacheService) {
         this.partyRepository = partyRepository;
         this.memberRepository = memberRepository;
         this.teleportationCacheService = teleportationCacheService;

@@ -19,12 +19,12 @@ import rocks.milspecsg.msparties.model.core.Party;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-public class PartyDisbandCommand implements CommandExecutor {
+public class PartyDisbandCommand<P extends Party> implements CommandExecutor {
 
-    private PartyRepository partyRepository;
+    private PartyRepository<P> partyRepository;
 
     @Inject
-    public PartyDisbandCommand(PartyRepository partyRepository) {
+    public PartyDisbandCommand(PartyRepository<P> partyRepository) {
         this.partyRepository = partyRepository;
     }
 

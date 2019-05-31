@@ -11,15 +11,16 @@ import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import rocks.milspecsg.msparties.PluginInfo;
 import rocks.milspecsg.msparties.api.party.PartyRepository;
+import rocks.milspecsg.msparties.model.core.Party;
 
 import java.util.Optional;
 
-public class PartyLeaveCommand implements CommandExecutor {
+public class PartyLeaveCommand<P extends Party> implements CommandExecutor {
 
-    protected PartyRepository partyRepository;
+    protected PartyRepository<P> partyRepository;
 
     @Inject
-    public PartyLeaveCommand(PartyRepository partyRepository) {
+    public PartyLeaveCommand(PartyRepository<P> partyRepository) {
         this.partyRepository = partyRepository;
     }
 

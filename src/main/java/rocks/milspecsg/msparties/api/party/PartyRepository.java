@@ -17,7 +17,7 @@ import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public interface PartyRepository extends Repository<Party> {
+public interface PartyRepository<T extends Party> extends Repository<T> {
 
     /**
      * Represents the default singular identifier for a group
@@ -89,11 +89,11 @@ public interface PartyRepository extends Repository<Party> {
 
     /**
      * @param name   {@link String} Name of new {@link Party}
-     * @param tag {@link String} Tag of new {@link Party}
+     * @param tag    {@link String} Tag of new {@link Party}
      * @param leader {@link User} that is to be the leader of the new party
      * @return {@code Optional} wrapped {@code Party}
      */
-    CompletableFuture<CreateResult<? extends Party>> createParty(String name, String tag, User leader);
+    CompletableFuture<CreateResult<T>> createParty(String name, String tag, User leader);
 
     /**
      * @param name {@link String} Name of {@link Party} to be modified
@@ -101,7 +101,6 @@ public interface PartyRepository extends Repository<Party> {
      * @return {@link UpdateResult} with information about the modification
      */
     CompletableFuture<PermissibleResult> disbandParty(String name, User user);
-
 
 
 //    /**
@@ -141,7 +140,7 @@ public interface PartyRepository extends Repository<Party> {
     CompletableFuture<PermissibleResult> tagParty(String name, String newTag, User user);
 
     /**
-     * @param name        {@link String} Name of {@link Party} to invite {@link User} to
+     * @param name         {@link String} Name of {@link Party} to invite {@link User} to
      * @param user         {@link User} to invite to party
      * @param targetPlayer
      * @return {@link UpdateResult} with information about the modificatio
@@ -160,63 +159,91 @@ public interface PartyRepository extends Repository<Party> {
      * @param name {@link String} Value to check
      * @return All parties that contain {@code name} in their name
      */
-    CompletableFuture<List<? extends Party>> getAllContains(String name);
+    CompletableFuture<List<T>> getAllContains(String name);
 
     /**
      * @param name {@link String} Value to check
      * @return First party that contains {@code name} in its name
      */
-    CompletableFuture<Optional<? extends Party>> getOneContains(String name);
+    CompletableFuture<Optional<T>> getOneContains(String name);
 
     /**
      * @return All parties
      */
-    CompletableFuture<List<? extends Party>> getAll();
+    CompletableFuture<List<T>> getAll();
 
     /**
      * @param name {@link String} Value to check
      * @return All parties that contain {@code name} in their name
      */
-    CompletableFuture<List<? extends Party>> getAll(String name);
+    CompletableFuture<List<T>> getAll(String name);
 
     /**
      * @param name {@link String} Value to check
      * @return First {@link Party} that contains {@code name} in its name
      */
-    CompletableFuture<Optional<? extends Party>> getOne(String name);
+    CompletableFuture<Optional<T>> getOne(String name);
 
     /**
      * @param userUUID {@link UUID} to check
      * @return a list of {@link Party} that a player with the provided {@link UUID} is in, empty if none
      */
-    CompletableFuture<List<? extends Party>> getAllForMember(UUID userUUID);
+    CompletableFuture<List<T>> getAllForMember(UUID userUUID);
 
     /**
      * @param userUUID {@link UUID} to check
      * @return a the first found {@link Party} that a player with the provided {@link UUID} is in
      */
-    CompletableFuture<Optional<? extends Party>> getOneForMember(UUID userUUID);
+    CompletableFuture<Optional<T>> getOneForMember(UUID userUUID);
 
     /**
      * @param id {@link ObjectId} to check
      * @return a list of {@link Party} that a player with the provided {@link ObjectId} is in, empty if none
      */
-    CompletableFuture<List<? extends Party>> getAllForMember(ObjectId id);
+    CompletableFuture<List<T>> getAllForMember(ObjectId id);
 
     /**
-     * @param id {@link ObjectId} to check
+     * @param id {@link ObjectId} of {@link Party} to check
      * @return a the first found {@link Party} that a player with the provided {@link ObjectId} is in
      */
-    CompletableFuture<Optional<? extends Party>> getOneForMember(ObjectId id);
+    CompletableFuture<Optional<T>> getOneForMember(ObjectId id);
 
+    /**
+     *
+     * @param party {@link Party} to check
+     * @param user {@link User} to check
+     * @return Whether the given {@link User} is in the provided {@link Party}
+     */
     CompletableFuture<Optional<Boolean>> isIn(Party party, User user);
 
+    /**
+     * @param id {@link ObjectId} of {@link Party} to check
+     * @param user {@link User} to check
+     * @return Whether the given {@link User} is in the specified {@link Party}
+     */
     CompletableFuture<Optional<Boolean>> isIn(ObjectId id, User user);
 
+    /**
+     *
+     * @param name {@link String} Name of {@link Party} to check
+     * @param user {@link User} to check
+     * @return Whether the given {@link User} is in the specified {@link Party}
+     * {@link String#equalsIgnoreCase(String)} must be {@code true} for {@link Party#name} and the provided parameter {@code name}
+     */
     CompletableFuture<Optional<Boolean>> isIn(String name, User user);
 
+    /**
+     *
+     * @param party {@link Party} to check
+     * @return Number of members in {@link Party}
+     */
     CompletableFuture<Optional<Integer>> getSize(Party party);
 
+    /**
+     * @param name {@link String} Name of {@link Party} to check
+     * @return Number of members in {@link Party}
+     * {@link String#equalsIgnoreCase(String)} must be {@code true} for {@link Party#name} and the provided parameter {@code name}
+     */
     CompletableFuture<Optional<Integer>> getSize(String name);
 
     /**
@@ -228,6 +255,7 @@ public interface PartyRepository extends Repository<Party> {
     /**
      * @param name {@link String} of {@link Party}
      * @return {@link UUID} of the leader of the {@link Party}
+     * {@link String#equalsIgnoreCase(String)} must be {@code true} for {@link Party#name} and the provided parameter {@code name}
      */
     CompletableFuture<Optional<UUID>> getLeaderUUID(String name);
 
@@ -241,7 +269,7 @@ public interface PartyRepository extends Repository<Party> {
      * @param party {@link Party} to reset ranks
      * @return A {@link Party} with the ranks reset to default TODO: as defined in the config
      */
-    CompletableFuture<Party> resetRanks(Party party);
+    CompletableFuture<T> resetRanks(T party);
 
     /**
      * @param id {@link ObjectId} of {@link Party} to reset ranks
@@ -260,7 +288,7 @@ public interface PartyRepository extends Repository<Party> {
      * @param party {@link Party} to reset permissions
      * @return A {@link Party} with the permissions reset to default TODO: as defined in the config
      */
-    CompletableFuture<Party> resetPermissions(Party party);
+    CompletableFuture<T> resetPermissions(T party);
 
     /**
      * @param id {@link ObjectId} of {@link Party} to reset permissions
@@ -275,6 +303,11 @@ public interface PartyRepository extends Repository<Party> {
      */
     CompletableFuture<UpdateResult> resetPermissions(String name);
 
+    /**
+     * @param id   {@link ObjectId} of {@link Party} to search in
+     * @param user {@link User} to get rank index for
+     * @return The rank index of a given {@link User} in a {@link Party}
+     */
     CompletableFuture<Optional<Integer>> getRankIndex(ObjectId id, User user);
 
     /**
@@ -307,8 +340,21 @@ public interface PartyRepository extends Repository<Party> {
      */
     CompletableFuture<Boolean> check(ObjectId id, String permission, User user);
 
-    CompletableFuture<Optional<? extends Party>> fullCheck(String name, String permission, User user);
+    /**
+     * @param name       {@link String} Name of {@link Party} to check
+     * @param permission {@link String} permission value to check
+     * @param user       {@link User} to check
+     * @return {@link Optional} containing {@link Party} if the user is in the {@link Party} and has the given permission.
+     * Else return {@link Optional#empty()}
+     * {@link String#equalsIgnoreCase(String)} must be {@code true} for {@link Party#name} and the provided parameter {@code name}
+     */
+    CompletableFuture<Optional<T>> fullCheck(String name, String permission, User user);
 
+    /**
+     * @param name {@link String} Name of {@link Party} to check
+     * @return {@link ObjectId} of {@link Party}
+     * {@link String#equalsIgnoreCase(String)} must be {@code true} for {@link Party#name} and the provided parameter {@code name}
+     */
     CompletableFuture<Optional<ObjectId>> getId(String name);
 
     /**
@@ -316,5 +362,5 @@ public interface PartyRepository extends Repository<Party> {
      * @return A {@link Query<Party>} containing a party matching the given {@link String} name
      * {@link String#equalsIgnoreCase(String)} must be {@code true} for {@link Party#name} and the provided parameter {@code name}
      */
-    Query<Party> asQuery(String name);
+    Query<T> asQuery(String name);
 }

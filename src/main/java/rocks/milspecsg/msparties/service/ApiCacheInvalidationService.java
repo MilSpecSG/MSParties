@@ -55,12 +55,12 @@ public abstract class ApiCacheInvalidationService<T> implements CacheInvalidatio
     }
 
     @Override
-    public Set<? extends T> getAll() {
+    public Set<T> getAll() {
         return cache.keySet();
     }
 
     @Override
-    public Optional<? extends T> put(T t) {
+    public Optional<T> put(T t) {
         if (t == null) return Optional.empty();
         cache.put(t, System.currentTimeMillis());
         Sponge.getServer().getConsole().sendMessage(Text.of(PluginInfo.PluginPrefix, "Saved ", t));
@@ -68,7 +68,7 @@ public abstract class ApiCacheInvalidationService<T> implements CacheInvalidatio
     }
 
     @Override
-    public List<? extends T> put(List<? extends T> list) {
+    public List<T> put(List<T> list) {
         return list.stream().map(t -> put(t).orElse(null)).filter(Objects::nonNull).collect(Collectors.toList());
     }
 
@@ -83,12 +83,12 @@ public abstract class ApiCacheInvalidationService<T> implements CacheInvalidatio
     }
 
     @Override
-    public List<? extends T> getAll(Predicate<? super T> predicate) {
+    public List<T> getAll(Predicate<? super T> predicate) {
         return getAll().stream().filter(predicate).collect(Collectors.toList());
     }
 
     @Override
-    public Optional<? extends T> getOne(Predicate<? super T> predicate) {
+    public Optional<T> getOne(Predicate<? super T> predicate) {
         return Repository.single(getAll(predicate));
     }
 }

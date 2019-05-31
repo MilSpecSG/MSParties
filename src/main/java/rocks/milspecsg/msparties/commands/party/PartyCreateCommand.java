@@ -17,12 +17,12 @@ import rocks.milspecsg.msparties.model.results.CreateResult;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 
-public class PartyCreateCommand implements CommandExecutor {
+public class PartyCreateCommand<P extends Party> implements CommandExecutor {
 
-    protected PartyRepository partyRepository;
+    protected PartyRepository<P> partyRepository;
 
     @Inject
-    public PartyCreateCommand(PartyRepository partyRepository) {
+    public PartyCreateCommand(PartyRepository<P> partyRepository) {
         this.partyRepository = partyRepository;
     }
 

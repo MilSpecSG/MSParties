@@ -14,6 +14,7 @@ import rocks.milspecsg.msparties.api.config.ConfigurationService;
 import rocks.milspecsg.msparties.api.member.MemberRepository;
 import rocks.milspecsg.msparties.api.party.PartyInvitationCacheService;
 import rocks.milspecsg.msparties.api.party.PartyRepository;
+import rocks.milspecsg.msparties.model.core.Member;
 import rocks.milspecsg.msparties.model.core.Party;
 import rocks.milspecsg.msparties.model.misc.PartyInvitation;
 import rocks.milspecsg.msparties.service.ApiCacheInvalidationService;
@@ -21,21 +22,20 @@ import rocks.milspecsg.msparties.service.ApiCacheInvalidationService;
 import java.util.*;
 
 @Singleton
-public class ApiPartyInvitationCacheService extends ApiCacheInvalidationService<PartyInvitation> implements PartyInvitationCacheService {
+public class ApiPartyInvitationCacheService<P extends Party, M extends Member> extends ApiCacheInvalidationService<PartyInvitation> implements PartyInvitationCacheService {
 
-    protected PartyRepository partyRepository;
-    protected MemberRepository memberRepository;
+    protected PartyRepository<P> partyRepository;
+    protected MemberRepository<M> memberRepository;
 
     @Inject
-    public ApiPartyInvitationCacheService(ConfigurationService configurationService, PartyRepository partyRepository, MemberRepository memberRepository) {
+    public ApiPartyInvitationCacheService(ConfigurationService configurationService, PartyRepository<P> partyRepository, MemberRepository<M> memberRepository) {
         super(configurationService);
         this.partyRepository = partyRepository;
         this.memberRepository = memberRepository;
     }
 
-
     @Override
-    public List<? extends PartyInvitation> getAll(UUID userUUID) {
+    public List<PartyInvitation> getAll(UUID userUUID) {
         return getAll(partyInvitation -> partyInvitation.targetPlayer.equals(userUUID));
     }
 

@@ -5,9 +5,9 @@ import rocks.milspecsg.msparties.model.core.Party;
 
 import java.util.Optional;
 
-public interface PartyCacheService extends RepositoryCacheService<Party> {
+public interface PartyCacheService<T extends Party> extends RepositoryCacheService<T> {
 
-    Optional<? extends Party> getOne(String name);
+    Optional<T> getOne(String name);
 
     void remove(String name);
 

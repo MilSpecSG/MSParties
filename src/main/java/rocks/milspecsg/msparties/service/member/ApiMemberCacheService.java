@@ -11,7 +11,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Singleton
-public class ApiMemberCacheService extends ApiRepositoryCacheService<Member> implements MemberCacheService {
+public class ApiMemberCacheService<M extends Member> extends ApiRepositoryCacheService<M> implements MemberCacheService<M> {
 
     @Inject
     public ApiMemberCacheService(ConfigurationService configurationService) {
@@ -19,7 +19,7 @@ public class ApiMemberCacheService extends ApiRepositoryCacheService<Member> imp
     }
 
     @Override
-    public Optional<? extends Member> getOne(UUID userUUID) {
+    public Optional<M> getOne(UUID userUUID) {
         return getOne(member -> member.userUUID.equals(userUUID));
     }
 }

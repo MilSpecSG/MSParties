@@ -16,14 +16,14 @@ import java.util.concurrent.CompletableFuture;
 
 public interface TeleportationCacheService extends CacheInvalidationService<TeleportationRequest> {
 
-    Optional<? extends TeleportationRequest> getOne(UUID teleportingPlayer, ObjectId partyId);
+    Optional<TeleportationRequest> getOne(UUID teleportingPlayer, ObjectId partyId);
 
-    Optional<? extends TeleportationRequest> getOne(UUID teleportingPlayer);
+    Optional<TeleportationRequest> getOne(UUID teleportingPlayer);
 
-    List<? extends TeleportationRequest> getAll(UUID teleportingPlayer);
+    List<TeleportationRequest> getAll(UUID teleportingPlayer);
 
     void accept(TeleportationRequest request);
 
-    CompletableFuture<List<? extends Player>> sendRequest(User receiver, Party party);
+    CompletableFuture<List<Player>> sendRequest(User receiver, Party party);
 
 }

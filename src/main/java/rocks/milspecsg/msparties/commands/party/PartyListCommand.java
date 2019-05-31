@@ -20,13 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
-public class PartyListCommand implements CommandExecutor {
+public class PartyListCommand<P extends Party> implements CommandExecutor {
 
-    protected PartyRepository partyRepository;
+    protected PartyRepository<P> partyRepository;
 
 
     @Inject
-    public PartyListCommand(PartyRepository partyRepository) {
+    public PartyListCommand(PartyRepository<P> partyRepository) {
         this.partyRepository = partyRepository;
     }
 

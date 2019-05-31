@@ -14,7 +14,7 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 @Singleton
-public class ApiPartyCacheService extends ApiRepositoryCacheService<Party> implements PartyCacheService {
+public class ApiPartyCacheService<P extends Party> extends ApiRepositoryCacheService<P> implements PartyCacheService<P> {
 
     @Inject
     public ApiPartyCacheService(ConfigurationService configurationService) {
@@ -22,7 +22,7 @@ public class ApiPartyCacheService extends ApiRepositoryCacheService<Party> imple
     }
 
     @Override
-    public Optional<? extends Party> getOne(String name) {
+    public Optional<P> getOne(String name) {
         return getOne(party -> party.name.equalsIgnoreCase(name));
     }
 

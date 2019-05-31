@@ -10,15 +10,16 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
 import rocks.milspecsg.msparties.api.party.PartyRepository;
+import rocks.milspecsg.msparties.model.core.Party;
 
 import java.util.Optional;
 
-public class PartyJoinCommand implements CommandExecutor {
+public class PartyJoinCommand<P extends Party> implements CommandExecutor {
 
-    protected PartyRepository partyRepository;
+    protected PartyRepository<P> partyRepository;
 
     @Inject
-    public PartyJoinCommand(PartyRepository partyRepository) {
+    public PartyJoinCommand(PartyRepository<P> partyRepository) {
         this.partyRepository = partyRepository;
     }
 

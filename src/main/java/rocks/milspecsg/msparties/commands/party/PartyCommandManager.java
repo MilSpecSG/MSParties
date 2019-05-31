@@ -12,6 +12,7 @@ import rocks.milspecsg.msparties.PluginPermissions;
 import rocks.milspecsg.msparties.api.party.PartyNameCacheService;
 import rocks.milspecsg.msparties.api.party.PartyRepository;
 import rocks.milspecsg.msparties.commands.CommandManager;
+import rocks.milspecsg.msparties.model.core.Member;
 import rocks.milspecsg.msparties.model.core.Party;
 import rocks.milspecsg.msparties.model.misc.TeleportationRequest;
 import rocks.milspecsg.msparties.model.misc.TriConsumer;
@@ -23,7 +24,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class PartyCommandManager implements CommandManager {
+public class PartyCommandManager<P extends Party, M extends Member> implements CommandManager {
 
     protected PartyRepository partyRepository;
     protected PartyNameCacheService partyNameCacheService;
@@ -32,47 +33,47 @@ public class PartyCommandManager implements CommandManager {
 
 
     @Inject
-    protected PartyAcceptCommand partyAcceptCommand;
+    protected PartyAcceptCommand<P, M> partyAcceptCommand;
 
     @Inject
-    protected PartyCreateCommand partyCreateCommand;
+    protected PartyCreateCommand<P> partyCreateCommand;
 
     @Inject
-    protected PartyDisbandCommand partyDisbandCommand;
+    protected PartyDisbandCommand<P> partyDisbandCommand;
 
     @Inject
-    protected PartyInfoCommand partyInfoCommand;
+    protected PartyInfoCommand<P, M> partyInfoCommand;
 
     @Inject
     protected PartyHelpCommand partyHelpCommand;
 
     @Inject
-    protected PartyInviteCommand partyInviteCommand;
+    protected PartyInviteCommand<P> partyInviteCommand;
 
     @Inject
-    protected PartyJoinCommand partyJoinCommand;
+    protected PartyJoinCommand<P> partyJoinCommand;
 
     @Inject
-    protected PartyLeaveCommand partyLeaveCommand;
+    protected PartyLeaveCommand<P> partyLeaveCommand;
 
     @Inject
-    protected PartyListCommand partyListCommand;
+    protected PartyListCommand<P> partyListCommand;
 
     @Inject
-    protected PartyMembersCommand partyMembersCommand;
+    protected PartyMembersCommand<P, M> partyMembersCommand;
 
     @Inject
-    protected PartyPrivacyCommand partyPrivacyCommand;
+    protected PartyPrivacyCommand<P> partyPrivacyCommand;
 
     @Inject
-    protected PartySetRankCommand partySetRankCommand;
+    protected PartySetRankCommand<P> partySetRankCommand;
 
     @Inject
-    protected PartyTpaallCommand partyTpaallCommand;
+    protected PartyTpaallCommand<P, M> partyTpaallCommand;
 
 
     @Inject
-    public PartyCommandManager(PartyRepository partyRepository, PartyNameCacheService partyNameCacheService) {
+    public PartyCommandManager(PartyRepository<P> partyRepository, PartyNameCacheService partyNameCacheService) {
         this.partyRepository = partyRepository;
         this.partyNameCacheService = partyNameCacheService;
     }
@@ -220,7 +221,7 @@ public class PartyCommandManager implements CommandManager {
         ));
     }
 
-    static void listCurrentTeleportationRequestsToPlayer(Player player, List<? extends TeleportationRequest> requests, PartyRepository partyRepository) {
+    static void listCurrentTeleportationRequestsToPlayer(Player player, List<? extends TeleportationRequest> requests, PartyRepository<? extends Party> partyRepository) {
         CompletableFuture.runAsync(() -> {
             player.sendMessage(Text.of(
                     PluginInfo.PluginPrefix, TextColors.RED, "You have teleportation requests from the following parties:\n",
@@ -271,7 +272,7 @@ public class PartyCommandManager implements CommandManager {
         return Optional.empty();
     }
 
-    static void handleMultiplePartyCommand(Supplier<Optional<String>> optionalNameSupplier, Player player, BiConsumer<String, Player> ifOne, PartyRepository partyRepository, String command) {
+    static void handleMultiplePartyCommand(Supplier<Optional<String>> optionalNameSupplier, Player player, BiConsumer<String, Player> ifOne, PartyRepository<? extends Party> partyRepository, String command) {
         Optional<String> optionalName = optionalNameSupplier.get();
         if (optionalName.isPresent()) {
             ifOne.accept(optionalName.get(), player);

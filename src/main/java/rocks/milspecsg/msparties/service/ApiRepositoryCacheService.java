@@ -13,7 +13,7 @@ public abstract class ApiRepositoryCacheService<T extends Dbo> extends ApiCacheI
     }
 
     @Override
-    public Optional<? extends T> getOne(ObjectId id) {
+    public Optional<T> getOne(ObjectId id) {
         return getOne(dbo -> dbo.getId().equals(id));
     }
 

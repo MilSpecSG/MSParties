@@ -3,7 +3,6 @@ package rocks.milspecsg.msparties.service.party;
 import com.google.inject.Inject;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.query.Query;
-import org.mongodb.morphia.query.UpdateOperations;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.entity.living.player.User;
@@ -29,13 +28,13 @@ import rocks.milspecsg.msparties.service.ApiRepository;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 
-public class ApiPartyRepository extends ApiRepository<Party> implements PartyRepository {
+public abstract class ApiPartyRepository<P extends Party, M extends Member> extends ApiRepository<P> implements PartyRepository<P> {
 
     protected ConfigurationService configurationService;
     protected NameVerificationService nameVerificationService;
     protected PermissionCacheService permissionCacheService;
-    protected PartyCacheService partyCacheService;
-    protected MemberRepository memberRepository;
+    protected PartyCacheService<P> partyCacheService;
+    protected MemberRepository<M> memberRepository;
     protected PartyInvitationCacheService partyInvitationCacheService;
     protected TeleportationCacheService teleportationCacheService;
 
@@ -45,8 +44,8 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
             ConfigurationService configurationService,
             NameVerificationService nameVerificationService,
             PermissionCacheService permissionCacheService,
-            PartyCacheService partyCacheService,
-            MemberRepository memberRepository,
+            PartyCacheService<P> partyCacheService,
+            MemberRepository<M> memberRepository,
             PartyInvitationCacheService partyInvitationCacheService,
             TeleportationCacheService teleportationCacheService) {
         super(mongoContext);
@@ -61,20 +60,20 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
 
 
     @Override
-    public CompletableFuture<CreateResult<? extends Party>> createParty(String name, String tag, User leader) {
+    public CompletableFuture<CreateResult<P>> createParty(String name, String tag, User leader) {
         // todo: name verification
 
         return CompletableFuture.supplyAsync(() -> {
             // make sure name passes filters
 
             // check if name already exists
-            List<? extends Party> existing = getAll(name).join();
+            List<P> existing = getAll(name).join();
             if (existing.size() > 0) {
                 return new CreateResult<>("Party with name \'" + name + "\' already exists");
             }
 
 
-            List<? extends Party> alreadyIn = getAllForMember(leader.getUniqueId()).join();
+            List<P> alreadyIn = getAllForMember(leader.getUniqueId()).join();
             int maxParties = configurationService.getConfigInteger(ConfigKeys.PLAYER_MAX_PARTIES_INT);
             if (maxParties >= 0 && alreadyIn.size() >= maxParties) {
                 return maxParties == 1
@@ -83,10 +82,10 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
             }
 
 
-            Optional<? extends Member> optionalMember = memberRepository.getOneOrGenerate(leader.getUniqueId()).join();
+            Optional<M> optionalMember = memberRepository.getOneOrGenerate(leader.getUniqueId()).join();
             if (!optionalMember.isPresent()) return new CreateResult<>("Error creating/getting member from database");
 
-            Party party = new Party();
+            P party = generateDefault();
             party.name = name;
             party.tag = tag;
             party.leaderUUID = leader.getUniqueId();
@@ -100,7 +99,7 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
             // ==== generate default permissions ==== //
             resetPermissions(party).join();
 
-            return new CreateResult<Party>(insertOne(party).join(), ErrorCodes.getMessage(ErrorCodes.ERROR_INSERTING_INTO_DB));
+            return new CreateResult<>(insertOne(party).join(), ErrorCodes.getMessage(ErrorCodes.ERROR_INSERTING_INTO_DB));
         });
     }
 
@@ -132,7 +131,7 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
 //    public CompletableFuture<PermissibleResult> joinParty(ObjectId id, User user) {
 //        return CompletableFuture.supplyAsync(() -> {
 //            boolean hasInvitation = partyInvitationCacheService.hasInvitation(id, user.getUniqueId());
-//            Optional<? extends Party> optionalParty = getOne(id).join();
+//            Optional<P> optionalParty = getOne(id).join();
 //            if (!optionalParty.isPresent()) {
 //                return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_FROM_DB));
 //            }
@@ -202,7 +201,7 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
                     return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_LEADER_ID));
                 }
 
-                Optional<? extends Party> optionalParty = getOne(name).join();
+                Optional<P> optionalParty = getOne(name).join();
                 if (!optionalParty.isPresent()) {
                     return PermissibleResult.fail(ErrorCodes.getMessage(ErrorCodes.ERROR_GETTING_FROM_DB));
                 }
@@ -375,56 +374,56 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
     }
 
     @Override
-    public CompletableFuture<Optional<? extends Party>> getOne(ObjectId id) {
+    public CompletableFuture<Optional<P>> getOne(ObjectId id) {
         return CompletableFuture.supplyAsync(ifNotPresent(partyCacheService, id));
     }
 
     @Override
-    public CompletableFuture<List<? extends Party>> getAllContains(String name) {
+    public CompletableFuture<List<P>> getAllContains(String name) {
         return CompletableFuture.supplyAsync(saveToCache(partyCacheService, () -> asQuery().field("name").containsIgnoreCase(name).asList()));
     }
 
     @Override
-    public CompletableFuture<Optional<? extends Party>> getOneContains(String name) {
+    public CompletableFuture<Optional<P>> getOneContains(String name) {
         return CompletableFuture.supplyAsync(ifNotPresent(partyCacheService, service -> service.getOne(party -> party.name.toLowerCase().contains(name.toLowerCase())), () -> getAllContains(name).thenApplyAsync(Repository.single()).join()));
     }
 
     @Override
-    public CompletableFuture<List<? extends Party>> getAll() {
+    public CompletableFuture<List<P>> getAll() {
         return CompletableFuture.supplyAsync(saveToCache(partyCacheService, () -> asQuery().asList()));
     }
 
     @Override
-    public CompletableFuture<List<? extends Party>> getAll(String name) {
+    public CompletableFuture<List<P>> getAll(String name) {
         return CompletableFuture.supplyAsync(saveToCache(partyCacheService, () -> asQuery().field("name").equalIgnoreCase(name).asList()));
     }
 
     @Override
-    public CompletableFuture<Optional<? extends Party>> getOne(String name) {
+    public CompletableFuture<Optional<P>> getOne(String name) {
         return CompletableFuture.supplyAsync(ifNotPresent(partyCacheService, service -> service.getOne(party -> party.name.equals(name)), () -> getAllContains(name).thenApplyAsync(Repository.single()).join()));
     }
 
     @Override
-    public CompletableFuture<List<? extends Party>> getAllForMember(UUID userUUID) {
+    public CompletableFuture<List<P>> getAllForMember(UUID userUUID) {
         return CompletableFuture.supplyAsync(saveToCache(partyCacheService, () -> memberRepository.getId(userUUID).join().map(id -> getAllForMember(id).join()).orElse(new ArrayList<>())));
     }
 
     @Override
-    public CompletableFuture<Optional<? extends Party>> getOneForMember(UUID userUUID) {
+    public CompletableFuture<Optional<P>> getOneForMember(UUID userUUID) {
         return CompletableFuture.supplyAsync(() -> memberRepository.getId(userUUID).join().flatMap(id -> getOneForMember(id).join()));
     }
 
     @Override
-    public CompletableFuture<List<? extends Party>> getAllForMember(ObjectId id) {
+    public CompletableFuture<List<P>> getAllForMember(ObjectId id) {
         return CompletableFuture.supplyAsync(saveToCache(partyCacheService, () -> asQuery().field("members." + id.toString()).exists().asList()));
     }
 
     @Override
-    public CompletableFuture<Optional<? extends Party>> getOneForMember(ObjectId id) {
+    public CompletableFuture<Optional<P>> getOneForMember(ObjectId id) {
         return getAllForMember(id).thenApplyAsync(Repository.single());
     }
 
-    //    protected static <T> CompletableFuture<List<T>> toList(List<CompletableFuture<T>> com) {
+    //    protected static <P> CompletableFuture<List<P>> toList(List<CompletableFuture<P>> com) {
 //        return CompletableFuture.allOf(com.toArray(new CompletableFuture[0]))
 //                .thenApplyAsync(v -> com.stream()
 //                        .map(CompletableFuture::join)
@@ -481,16 +480,6 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
         return CompletableFuture.supplyAsync(() -> getLeaderUUID(name).join().flatMap(memberRepository::getUser));
     }
 
-    @Override
-    public UpdateOperations<Party> createUpdateOperations() {
-        return mongoContext.datastore.createUpdateOperations(Party.class);
-    }
-
-    @Override
-    public Query<Party> asQuery() {
-        return mongoContext.datastore.createQuery(Party.class);
-    }
-
     private List<Rank> getDefaultRanks() {
         List<Rank> result = new ArrayList<>();
         Rank leaderRank = new Rank();
@@ -521,7 +510,7 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
     }
 
     @Override
-    public CompletableFuture<Party> resetRanks(Party party) {
+    public CompletableFuture<P> resetRanks(P party) {
         //TODO: load from config
         return CompletableFuture.supplyAsync(() -> {
             party.ranks = getDefaultRanks();
@@ -567,7 +556,7 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
     }
 
     @Override
-    public CompletableFuture<Party> resetPermissions(Party party) {
+    public CompletableFuture<P> resetPermissions(P party) {
         //TODO: load from config
         return CompletableFuture.supplyAsync(() -> {
             party.permissions = getDefaultPermissions();
@@ -613,9 +602,9 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
     }
 
     @Override
-    public CompletableFuture<Optional<? extends Party>> fullCheck(String name, String permission, User user) {
+    public CompletableFuture<Optional<P>> fullCheck(String name, String permission, User user) {
         return CompletableFuture.supplyAsync(() -> {
-            Optional<? extends Party> optionalParty = getOne(name).join();
+            Optional<P> optionalParty = getOne(name).join();
             return optionalParty.flatMap(party -> {
                 if (isIn(party, user).join().orElse(false) && check(party.getId(), permission, user).join()) {
                     return Optional.of(party);
@@ -634,7 +623,7 @@ public class ApiPartyRepository extends ApiRepository<Party> implements PartyRep
     }
 
     @Override
-    public Query<Party> asQuery(String name) {
+    public Query<P> asQuery(String name) {
         return asQuery().field("name").equalIgnoreCase(name);
     }
 

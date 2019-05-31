@@ -13,6 +13,7 @@ import rocks.milspecsg.msparties.PluginInfo;
 import rocks.milspecsg.msparties.api.member.MemberRepository;
 import rocks.milspecsg.msparties.api.member.TeleportationCacheService;
 import rocks.milspecsg.msparties.api.party.PartyRepository;
+import rocks.milspecsg.msparties.model.core.Member;
 import rocks.milspecsg.msparties.model.core.Party;
 import rocks.milspecsg.msparties.model.misc.TeleportationRequest;
 
@@ -20,14 +21,14 @@ import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.CompletableFuture;
 
-public class PartyAcceptCommand implements CommandExecutor {
+public class PartyAcceptCommand<P extends Party, M extends Member> implements CommandExecutor {
 
     protected TeleportationCacheService teleportationCacheService;
-    protected PartyRepository partyRepository;
-    protected MemberRepository memberRepository;
+    protected PartyRepository<P> partyRepository;
+    protected MemberRepository<M> memberRepository;
 
     @Inject
-    public PartyAcceptCommand(TeleportationCacheService teleportationCacheService, PartyRepository partyRepository, MemberRepository memberRepository) {
+    public PartyAcceptCommand(TeleportationCacheService teleportationCacheService, PartyRepository<P> partyRepository, MemberRepository<M> memberRepository) {
         this.teleportationCacheService = teleportationCacheService;
         this.partyRepository = partyRepository;
         this.memberRepository = memberRepository;

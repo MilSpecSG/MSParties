@@ -7,8 +7,8 @@ import rocks.milspecsg.msparties.model.core.Party;
 import java.util.Optional;
 import java.util.UUID;
 
-public interface MemberCacheService extends RepositoryCacheService<Member> {
+public interface MemberCacheService<M extends Member> extends RepositoryCacheService<M> {
 
-    Optional<? extends Member> getOne(UUID userUUID);
+    Optional<M> getOne(UUID userUUID);
 
 }

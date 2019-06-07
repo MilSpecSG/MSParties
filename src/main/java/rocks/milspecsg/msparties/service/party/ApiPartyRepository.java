@@ -60,7 +60,7 @@ public abstract class ApiPartyRepository<P extends Party, M extends Member> exte
 
 
     @Override
-    public CompletableFuture<CreateResult<P>> createParty(String name, String tag, User leader) {
+    public CompletableFuture<CreateResult<P>> create(String name, String tag, User leader) {
         // todo: name verification
 
         return CompletableFuture.supplyAsync(() -> {
@@ -69,7 +69,7 @@ public abstract class ApiPartyRepository<P extends Party, M extends Member> exte
             // check if name already exists
             List<P> existing = getAll(name).join();
             if (existing.size() > 0) {
-                return new CreateResult<>("Party with name \'" + name + "\' already exists");
+                return new CreateResult<>(getDefaultIdentifierSingularUpper() + " with name \'" + name + "\' already exists");
             }
 
 
@@ -78,14 +78,14 @@ public abstract class ApiPartyRepository<P extends Party, M extends Member> exte
             if (maxParties >= 0 && alreadyIn.size() >= maxParties) {
                 return maxParties == 1
                         ? new CreateResult<>("You are already in a " + getDefaultIdentifierSingularLower())
-                        : new CreateResult<>("You are already in " + alreadyIn.size() + " parties. Maximum: " + maxParties);
+                        : new CreateResult<>("You are already in " + alreadyIn.size() + getDefaultIdentifierPluralLower() + ". Maximum: " + maxParties);
             }
 
 
             Optional<M> optionalMember = memberRepository.getOneOrGenerate(leader.getUniqueId()).join();
-            if (!optionalMember.isPresent()) return new CreateResult<>("Error creating/getting member from database");
+            if (!optionalMember.isPresent()) return new CreateResult<>("Error creating/getting " + memberRepository.getDefaultIdentifierSingularLower() + " from database");
 
-            P party = generateDefault();
+            P party = generateEmpty();
             party.name = name;
             party.tag = tag;
             party.leaderUUID = leader.getUniqueId();
@@ -104,7 +104,7 @@ public abstract class ApiPartyRepository<P extends Party, M extends Member> exte
     }
 
     @Override
-    public CompletableFuture<PermissibleResult> disbandParty(String name, User user) {
+    public CompletableFuture<PermissibleResult> disband(String name, User user) {
         return CompletableFuture.supplyAsync(() -> {
             Optional<UUID> leaderUUID = getLeaderUUID(name).join();
             if (!leaderUUID.isPresent()) {
@@ -216,7 +216,7 @@ public abstract class ApiPartyRepository<P extends Party, M extends Member> exte
                     return PermissibleResult.fail("You cannot leave a " + getDefaultIdentifierSingularLower() + " as leader unless you are the only player in it\n" +
                             "You must appoint another leader before leaving"); // TODO: put command in here
                 } else if (optionalSize.get() == 1) {
-                    return disbandParty(name, user).join();
+                    return disband(name, user).join();
                 }
 
                 Optional<ObjectId> optionalMemberId = memberRepository.getId(user.getUniqueId()).join();
@@ -241,7 +241,7 @@ public abstract class ApiPartyRepository<P extends Party, M extends Member> exte
     }
 
     @Override
-    public CompletableFuture<PermissibleResult> nameParty(String name, String newName, User user) {
+    public CompletableFuture<PermissibleResult> name(String name, String newName, User user) {
         return fullCheck(name, PermissionCacheService.EDIT_NAME, user).thenApplyAsync(optionalParty -> {
 
             if (!optionalParty.isPresent()) {
@@ -262,7 +262,7 @@ public abstract class ApiPartyRepository<P extends Party, M extends Member> exte
     }
 
     @Override
-    public CompletableFuture<PermissibleResult> tagParty(String name, String newTag, User user) {
+    public CompletableFuture<PermissibleResult> tag(String name, String newTag, User user) {
         return fullCheck(name, PermissionCacheService.EDIT_NAME, user).thenApplyAsync(optionalParty -> {
 
             if (!nameVerificationService.isOk(newTag)) {

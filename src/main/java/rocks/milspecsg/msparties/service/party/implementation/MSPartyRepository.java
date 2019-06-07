@@ -41,7 +41,7 @@ public class MSPartyRepository extends ApiPartyRepository<Party, Member> {
     }
 
     @Override
-    public Party generateDefault() {
+    public Party generateEmpty() {
         return new Party();
     }
 

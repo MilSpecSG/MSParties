@@ -20,20 +20,40 @@ import rocks.milspecsg.msparties.service.party.*;
  *
  * @author Cableguy20
  */
-public abstract class APIModule<P extends Party, M extends Member> extends AbstractModule {
+public class APIModule<P extends Party, M extends Member> extends AbstractModule {
 
     @Override
     protected void configure() {
-        bind(new TypeLiteral<ConfigurationService>() {}).to(new TypeLiteral<ApiConfigurationService>() {});
-        bind(new TypeLiteral<PartyRepository<P>>() {}).to(new TypeLiteral<ApiPartyRepository<P, M>>() {});
-        bind(new TypeLiteral<PartyCacheService<P>>() {}).to(new TypeLiteral<ApiPartyCacheService<P>>() {});
-        bind(new TypeLiteral<PartyNameCacheService>() {}).to(new TypeLiteral<ApiPartyNameCacheService>() {});
-        bind(new TypeLiteral<NameVerificationService>() {}).to(new TypeLiteral<ApiNameVerificationService>() {});
+        bind(new TypeLiteral<ConfigurationService>() {
+        }).to(new TypeLiteral<ApiConfigurationService>() {
+        });
+        bind(new TypeLiteral<PartyRepository<P>>() {
+        }).to(new TypeLiteral<ApiPartyRepository<P, M>>() {
+        });
+        bind(new TypeLiteral<PartyCacheService<P>>() {
+        }).to(new TypeLiteral<ApiPartyCacheService<P>>() {
+        });
+        bind(new TypeLiteral<PartyNameCacheService>() {
+        }).to(new TypeLiteral<ApiPartyNameCacheService>() {
+        });
+        bind(new TypeLiteral<NameVerificationService>() {
+        }).to(new TypeLiteral<ApiNameVerificationService>() {
+        });
 
-        bind(new TypeLiteral<MemberRepository<M>>() {}).to(new TypeLiteral<ApiMemberRepository<M>>() {});
-        bind(new TypeLiteral<MemberCacheService<M>>() {}).to(new TypeLiteral<ApiMemberCacheService<M>>() {});
-        bind(new TypeLiteral<TeleportationCacheService>() {}).to(new TypeLiteral<ApiTeleportationCacheService<M>>() {});
-        bind(new TypeLiteral<PermissionCacheService>() {}).to(new TypeLiteral<ApiPermissionCacheService>() {});
-        bind(new TypeLiteral<PartyInvitationCacheService>() {}).to(new TypeLiteral<ApiPartyInvitationCacheService<P, M>>() {});
+        bind(new TypeLiteral<MemberRepository<M>>() {
+        }).to(new TypeLiteral<ApiMemberRepository<M>>() {
+        });
+        bind(new TypeLiteral<MemberCacheService<M>>() {
+        }).to(new TypeLiteral<ApiMemberCacheService<M>>() {
+        });
+        bind(new TypeLiteral<TeleportationCacheService>() {
+        }).to(new TypeLiteral<ApiTeleportationCacheService<M>>() {
+        });
+        bind(new TypeLiteral<PermissionCacheService>() {
+        }).to(new TypeLiteral<ApiPermissionCacheService>() {
+        });
+        bind(new TypeLiteral<PartyInvitationCacheService>() {
+        }).to(new TypeLiteral<ApiPartyInvitationCacheService<P, M>>() {
+        });
     }
 }

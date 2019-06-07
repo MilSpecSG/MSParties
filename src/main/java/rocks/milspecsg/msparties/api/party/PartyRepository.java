@@ -93,14 +93,14 @@ public interface PartyRepository<T extends Party> extends Repository<T> {
      * @param leader {@link User} that is to be the leader of the new party
      * @return {@code Optional} wrapped {@code Party}
      */
-    CompletableFuture<CreateResult<T>> createParty(String name, String tag, User leader);
+    CompletableFuture<CreateResult<T>> create(String name, String tag, User leader);
 
     /**
      * @param name {@link String} Name of {@link Party} to be modified
      * @param user {@link User} that is attempting to disband the party
      * @return {@link UpdateResult} with information about the modification
      */
-    CompletableFuture<PermissibleResult> disbandParty(String name, User user);
+    CompletableFuture<PermissibleResult> disband(String name, User user);
 
 
 //    /**
@@ -130,14 +130,14 @@ public interface PartyRepository<T extends Party> extends Repository<T> {
      * @param newName {@link String} Name to set
      * @return {@link UpdateResult} with information about the modification
      */
-    CompletableFuture<PermissibleResult> nameParty(String name, String newName, User user);
+    CompletableFuture<PermissibleResult> name(String name, String newName, User user);
 
     /**
      * @param name   {@link String} Name of {@link Party} to be modified
      * @param newTag {@link String} Tag to set
      * @return {@link UpdateResult} with information about the modification
      */
-    CompletableFuture<PermissibleResult> tagParty(String name, String newTag, User user);
+    CompletableFuture<PermissibleResult> tag(String name, String newTag, User user);
 
     /**
      * @param name         {@link String} Name of {@link Party} to invite {@link User} to
@@ -359,7 +359,7 @@ public interface PartyRepository<T extends Party> extends Repository<T> {
 
     /**
      * @param name {@link String} of a {@link Party} to select
-     * @return A {@link Query<Party>} containing a party matching the given {@link String} name
+     * @return A {@link Query} containing a party matching the given {@link String} name
      * {@link String#equalsIgnoreCase(String)} must be {@code true} for {@link Party#name} and the provided parameter {@code name}
      */
     Query<T> asQuery(String name);

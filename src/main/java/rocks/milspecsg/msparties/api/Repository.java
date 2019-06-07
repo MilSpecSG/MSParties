@@ -14,9 +14,62 @@ import java.util.function.Supplier;
 public interface Repository<T extends Dbo> {
 
     /**
+     * Represents the default singular identifier for a {@link Dbo}
+     * <p>
+     * Should be overridden by other plugins who change the name of the object.
+     * Examples: "Clan", "Faction", "Guild", "Member", ... etc
+     * </p>
+     * <p>
+     * Used in text sent to the player
+     * </p>
+     */
+    String getDefaultIdentifierSingularUpper();
+
+    /**
+     * Represents the default plural identifier for a {@link Dbo}
+     * <p>
+     * Should be overridden by other plugins who change the name of party.
+     * Examples: "Clans", "Factions", "Guilds", "Members" ... etc
+     * </p>
+     * <p>
+     * Used in text sent to the player
+     * </p>
+     */
+    String getDefaultIdentifierPluralUpper();
+
+    /**
+     * Represents the default singular identifier for a {@link Dbo}
+     * <p>
+     * Should be overridden by other plugins who change the name of party.
+     * Examples: "clan", "faction", "guild", "member" ... etc
+     * </p>
+     * <p>
+     * Used in text sent to the player
+     * </p>
+     *
+     *
+     * <p>
+     * note: this will be used as the base command
+     * </p>
+     */
+    String getDefaultIdentifierSingularLower();
+
+    /**
+     * Represents the default plural identifier for a {@link Dbo}
+     * <p>
+     * Should be overridden by other plugins who change the name of party.
+     * Examples: "clans", "factions", "guilds", "members" ... etc
+     * </p>
+     * <p>
+     * Used in text sent to the player
+     * </p>
+     */
+    String getDefaultIdentifierPluralLower();
+
+    /**
      * @return An empty {@link T}
      */
-    T generateDefault();
+    T generateEmpty();
 
     CompletableFuture<Optional<T>> insertOne(T item);
 

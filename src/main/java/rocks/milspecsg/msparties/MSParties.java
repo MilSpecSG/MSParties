@@ -12,10 +12,13 @@ import org.spongepowered.api.event.Listener;
 import org.spongepowered.api.plugin.Plugin;
 import org.spongepowered.api.text.Text;
 import rocks.milspecsg.msparties.api.config.ConfigurationService;
-import rocks.milspecsg.msparties.api.party.PartyCacheService;
 import rocks.milspecsg.msparties.commands.party.*;
 import rocks.milspecsg.msparties.model.core.Member;
 import rocks.milspecsg.msparties.model.core.Party;
+import rocks.milspecsg.msparties.service.member.ApiMemberRepository;
+import rocks.milspecsg.msparties.service.member.implementation.MSMemberRepository;
+import rocks.milspecsg.msparties.service.party.ApiPartyRepository;
+import rocks.milspecsg.msparties.service.party.implementation.MSPartyRepository;
 
 @Plugin(id = PluginInfo.Id, name = PluginInfo.Name, version = PluginInfo.Version, description = PluginInfo.Description, authors = PluginInfo.Authors, url = PluginInfo.Url)
 public class MSParties {
@@ -27,7 +30,7 @@ public class MSParties {
     public Injector spongeRootInjector;
 
     public static MSParties plugin = null;
-    public static Injector injector = null;
+    private Injector injector = null;
 
     @Listener
     public void onServerStart(GameStartedServerEvent event) {
@@ -43,16 +46,25 @@ public class MSParties {
         Sponge.getServer().getConsole().sendMessage(Text.of(PluginInfo.PluginPrefix, "Finished"));
     }
 
-    protected void initServices() {
+    private void initServices() {
         injector = spongeRootInjector.createChildInjector(new MSPartiesModule());
     }
 
-    protected void initSingletonServices() {
+    private void initSingletonServices() {
         injector.getInstance(ConfigurationService.class);
     }
 
-    protected void initCommands() {
+    private void initCommands() {
         injector.getInstance(Key.get(new TypeLiteral<PartyCommandManager<Party, Member>>() {})).register(this);
     }
 
+    private class MSPartiesModule extends APIModule<Party, Member> {
+        @Override
+        protected void configure() {
+            super.configure();
+
+            bind(new TypeLiteral<ApiPartyRepository<Party, Member>>() {}).to(new TypeLiteral<MSPartyRepository>() {});
+            bind(new TypeLiteral<ApiMemberRepository<Member>>() {}).to(new TypeLiteral<MSMemberRepository>() {});
+        }
+    }
 }

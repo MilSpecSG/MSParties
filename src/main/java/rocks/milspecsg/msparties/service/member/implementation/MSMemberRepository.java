@@ -16,7 +16,7 @@ public class MSMemberRepository extends ApiMemberRepository<Member> {
     }
 
     @Override
-    public Member generateDefault() {
+    public Member generateEmpty() {
         return new Member();
     }
 

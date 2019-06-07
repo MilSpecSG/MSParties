@@ -3,7 +3,6 @@ package rocks.milspecsg.msparties.service.member;
 import com.google.inject.Inject;
 import org.bson.types.ObjectId;
 import org.mongodb.morphia.query.Query;
-import org.mongodb.morphia.query.UpdateOperations;
 import org.spongepowered.api.Sponge;
 import org.spongepowered.api.entity.living.player.User;
 import org.spongepowered.api.service.user.UserStorageService;
@@ -17,6 +16,7 @@ import rocks.milspecsg.msparties.service.ApiRepository;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
+import java.util.function.Function;
 
 public abstract class ApiMemberRepository<M extends Member> extends ApiRepository<M> implements MemberRepository<M> {
 
@@ -28,13 +28,14 @@ public abstract class ApiMemberRepository<M extends Member> extends ApiRepositor
         this.memberCacheService = memberCacheService;
     }
 
+
     @Override
     public CompletableFuture<Optional<M>> getOneOrGenerate(UUID userUUID) {
         return CompletableFuture.supplyAsync(() -> {
             Optional<M> optionalMember = getOne(userUUID).join();
             if (optionalMember.isPresent()) return optionalMember;
             // if there isn't one already, create a new one
-            M member = generateDefault();
+            M member = generateEmpty();
             member.userUUID = userUUID;
             return insertOne(member).join();
         });

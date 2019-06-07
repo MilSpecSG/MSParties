@@ -12,10 +12,8 @@ import org.spongepowered.api.text.format.TextColors;
 import rocks.milspecsg.msparties.PluginInfo;
 import rocks.milspecsg.msparties.api.party.PartyRepository;
 import rocks.milspecsg.msparties.model.core.Party;
-import rocks.milspecsg.msparties.model.results.CreateResult;
 
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 
 public class PartyCreateCommand<P extends Party> implements CommandExecutor {
 
@@ -37,7 +35,7 @@ public class PartyCreateCommand<P extends Party> implements CommandExecutor {
             if (!optionalName.isPresent()) throw new CommandException(Text.of("Missing name"));
             if (!optionalTag.isPresent()) throw new CommandException(Text.of("Missing tag"));
 
-            partyRepository.createParty(optionalName.get(), optionalTag.get().toUpperCase(), player).thenAcceptAsync(createResult -> {
+            partyRepository.create(optionalName.get(), optionalTag.get().toUpperCase(), player).thenAcceptAsync(createResult -> {
                 if (createResult.isSuccess() && createResult.getValue().isPresent()) {
                     Party party = createResult.getValue().get();
                     player.sendMessage(Text.of(

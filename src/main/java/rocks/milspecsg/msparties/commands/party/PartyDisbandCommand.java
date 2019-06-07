@@ -2,7 +2,6 @@ package rocks.milspecsg.msparties.commands.party;
 
 import com.google.inject.Inject;
 import org.spongepowered.api.command.CommandException;
-import org.spongepowered.api.command.CommandManager;
 import org.spongepowered.api.command.CommandResult;
 import org.spongepowered.api.command.CommandSource;
 import org.spongepowered.api.command.args.CommandContext;
@@ -11,13 +10,11 @@ import org.spongepowered.api.entity.living.player.Player;
 import org.spongepowered.api.event.filter.cause.Root;
 import org.spongepowered.api.text.Text;
 import org.spongepowered.api.text.format.TextColors;
-import org.spongepowered.api.util.annotation.NonnullByDefault;
 import rocks.milspecsg.msparties.PluginInfo;
 import rocks.milspecsg.msparties.api.party.PartyRepository;
 import rocks.milspecsg.msparties.model.core.Party;
 
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public class PartyDisbandCommand<P extends Party> implements CommandExecutor {
 
@@ -44,6 +41,6 @@ public class PartyDisbandCommand<P extends Party> implements CommandExecutor {
     }
 
     private void handleName(String name, Player player) {
-        partyRepository.disbandParty(name, player).thenAcceptAsync(permissibleResult -> player.sendMessage(PluginInfo.PluginPrefix.concat(permissibleResult.getMessage())));
+        partyRepository.disband(name, player).thenAcceptAsync(permissibleResult -> player.sendMessage(PluginInfo.PluginPrefix.concat(permissibleResult.getMessage())));
     }
 }

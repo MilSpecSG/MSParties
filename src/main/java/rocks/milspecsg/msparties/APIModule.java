@@ -1,5 +1,6 @@
 package rocks.milspecsg.msparties;
 
+import com.google.common.reflect.TypeToken;
 import com.google.inject.AbstractModule;
 import com.google.inject.TypeLiteral;
 import rocks.milspecsg.msparties.api.config.ConfigurationService;
@@ -22,16 +23,83 @@ import rocks.milspecsg.msparties.service.party.*;
  */
 public class APIModule<P extends Party, M extends Member> extends AbstractModule {
 
+
+
+    @SuppressWarnings({"unchecked", "UnstableApiUsage"})
     @Override
+    protected void configure() {
+        bind(
+                (TypeLiteral<ConfigurationService>) TypeLiteral.get(new TypeToken<ConfigurationService>(getClass()) {}.getType())
+        ).to(
+                (TypeLiteral<ApiConfigurationService>) TypeLiteral.get(new TypeToken<ApiConfigurationService>(getClass()) {}.getType())
+        );
+
+        bind(
+                (TypeLiteral<PartyRepository<P>>) TypeLiteral.get(new TypeToken<PartyRepository<P>>(getClass()) {}.getType())
+        ).to(
+                (TypeLiteral<ApiPartyRepository<P, M>>) TypeLiteral.get(new TypeToken<ApiPartyRepository<P, M>>(getClass()) {}.getType())
+        );
+
+        bind(
+                (TypeLiteral<PartyCacheService<P>>) TypeLiteral.get(new TypeToken<PartyCacheService<P>>(getClass()) {}.getType())
+        ).to(
+                (TypeLiteral<ApiPartyCacheService<P>>) TypeLiteral.get(new TypeToken<ApiPartyCacheService<P>>(getClass()) {}.getType())
+        );
+
+        bind(
+                (TypeLiteral<PartyNameCacheService>) TypeLiteral.get(new TypeToken<PartyNameCacheService>(getClass()) {}.getType())
+        ).to(
+                (TypeLiteral<ApiPartyNameCacheService>) TypeLiteral.get(new TypeToken<ApiPartyNameCacheService>(getClass()) {}.getType())
+        );
+
+        bind(
+                (TypeLiteral<NameVerificationService>) TypeLiteral.get(new TypeToken<NameVerificationService>(getClass()) {}.getType())
+        ).to(
+                (TypeLiteral<ApiNameVerificationService>) TypeLiteral.get(new TypeToken<ApiNameVerificationService>(getClass()) {}.getType())
+        );
+
+        bind(
+                (TypeLiteral<MemberRepository<M>>) TypeLiteral.get(new TypeToken<MemberRepository<M>>(getClass()) {}.getType())
+        ).to(
+                (TypeLiteral<ApiMemberRepository<M>>) TypeLiteral.get(new TypeToken<ApiMemberRepository<M>>(getClass()) {}.getType())
+        );
+
+        bind(
+                (TypeLiteral<MemberCacheService<M>>) TypeLiteral.get(new TypeToken<MemberCacheService<M>>(getClass()) {}.getType())
+        ).to(
+                (TypeLiteral<ApiMemberCacheService<M>>) TypeLiteral.get(new TypeToken<ApiMemberCacheService<M>>(getClass()) {}.getType())
+        );
+
+        bind(
+                (TypeLiteral<TeleportationCacheService>) TypeLiteral.get(new TypeToken<TeleportationCacheService>(getClass()) {}.getType())
+        ).to(
+                (TypeLiteral<ApiTeleportationCacheService<Member>>) TypeLiteral.get(new TypeToken<ApiTeleportationCacheService<M>>(getClass()) {}.getType())
+        );
+
+        bind(
+                (TypeLiteral<PermissionCacheService>) TypeLiteral.get(new TypeToken<PermissionCacheService>(getClass()) {}.getType())
+        ).to(
+                (TypeLiteral<ApiPermissionCacheService>) TypeLiteral.get(new TypeToken<ApiPermissionCacheService>(getClass()) {}.getType())
+        );
+
+        bind(
+                (TypeLiteral<PartyInvitationCacheService>) TypeLiteral.get(new TypeToken<PartyInvitationCacheService>(getClass()) {}.getType())
+        ).to(
+                (TypeLiteral<ApiPartyInvitationCacheService<P, M>>) TypeLiteral.get(new TypeToken<ApiPartyInvitationCacheService<P, M>>(getClass()) {}.getType())
+        );
+    }
+
+
+   /* @Override
     protected void configure() {
         bind(new TypeLiteral<ConfigurationService>() {
         }).to(new TypeLiteral<ApiConfigurationService>() {
         });
-        bind(new TypeLiteral<PartyRepository<P>>() {
-        }).to(new TypeLiteral<ApiPartyRepository<P, M>>() {
+        bind(new TypeLiteral<PartyRepository<Party>>() {
+        }).to(new TypeLiteral<ApiPartyRepository<Party, Member>>() {
         });
-        bind(new TypeLiteral<PartyCacheService<P>>() {
-        }).to(new TypeLiteral<ApiPartyCacheService<P>>() {
+        bind(new TypeLiteral<PartyCacheService<Party>>() {
+        }).to(new TypeLiteral<ApiPartyCacheService<Party>>() {
         });
         bind(new TypeLiteral<PartyNameCacheService>() {
         }).to(new TypeLiteral<ApiPartyNameCacheService>() {
@@ -40,20 +108,20 @@ public class APIModule<P extends Party, M extends Member> extends AbstractModule
         }).to(new TypeLiteral<ApiNameVerificationService>() {
         });
 
-        bind(new TypeLiteral<MemberRepository<M>>() {
-        }).to(new TypeLiteral<ApiMemberRepository<M>>() {
+        bind(new TypeLiteral<MemberRepository<Member>>() {
+        }).to(new TypeLiteral<ApiMemberRepository<Member>>() {
         });
-        bind(new TypeLiteral<MemberCacheService<M>>() {
-        }).to(new TypeLiteral<ApiMemberCacheService<M>>() {
+        bind(new TypeLiteral<MemberCacheService<Member>>() {
+        }).to(new TypeLiteral<ApiMemberCacheService<Member>>() {
         });
         bind(new TypeLiteral<TeleportationCacheService>() {
-        }).to(new TypeLiteral<ApiTeleportationCacheService<M>>() {
+        }).to(new TypeLiteral<ApiTeleportationCacheService<Member>>() {
         });
         bind(new TypeLiteral<PermissionCacheService>() {
         }).to(new TypeLiteral<ApiPermissionCacheService>() {
         });
         bind(new TypeLiteral<PartyInvitationCacheService>() {
-        }).to(new TypeLiteral<ApiPartyInvitationCacheService<P, M>>() {
+        }).to(new TypeLiteral<ApiPartyInvitationCacheService<Party, Member>>() {
         });
-    }
+    }*/
 }

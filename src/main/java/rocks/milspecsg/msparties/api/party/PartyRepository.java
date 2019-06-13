@@ -142,7 +142,7 @@ public interface PartyRepository<T extends Party> extends Repository<T> {
     /**
      * @param name         {@link String} Name of {@link Party} to invite {@link User} to
      * @param user         {@link User} to invite to party
-     * @param targetPlayer
+     * @param targetPlayer {@link Player} to target
      * @return {@link UpdateResult} with information about the modificatio
      */
     CompletableFuture<PermissibleResult> inviteUser(String name, User user, Player targetPlayer);

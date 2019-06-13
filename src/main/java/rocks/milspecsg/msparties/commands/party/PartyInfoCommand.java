@@ -29,7 +29,7 @@ public class PartyInfoCommand<P extends Party, M extends Member> implements Comm
 
     @Override
     public CommandResult execute(CommandSource source, CommandContext context) throws CommandException {
-        Optional<String> optionalName = context.getOne(Text.of("name"));
+        Optional<String> optionalName = context.getOne(Text.of("party"));
         if (source instanceof Player) {
             Player player = (Player) source;
 
@@ -45,7 +45,7 @@ public class PartyInfoCommand<P extends Party, M extends Member> implements Comm
                 handleName(optionalName.get(), source);
                 return CommandResult.success();
             } else {
-                throw new CommandException(Text.of(TextColors.RED, "Missing name"));
+                throw new CommandException(Text.of(TextColors.RED, "Missing party"));
             }
         }
     }

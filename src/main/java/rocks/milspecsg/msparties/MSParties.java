@@ -46,9 +46,7 @@ public class MSParties {
         Sponge.getServer().getConsole().sendMessage(Text.of(PluginInfo.PluginPrefix, "Finished"));
     }
 
-    private void initServices() {
-        injector = spongeRootInjector.createChildInjector(new MSPartiesModule());
-    }
+
 
     private void initSingletonServices() {
         injector.getInstance(ConfigurationService.class);
@@ -56,6 +54,10 @@ public class MSParties {
 
     private void initCommands() {
         injector.getInstance(Key.get(new TypeLiteral<PartyCommandManager<Party, Member>>() {})).register(this);
+    }
+
+    private void initServices() {
+        injector = spongeRootInjector.createChildInjector(new MSPartiesModule());
     }
 
     private class MSPartiesModule extends APIModule<Party, Member> {

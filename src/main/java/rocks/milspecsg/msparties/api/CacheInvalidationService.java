@@ -1,12 +1,9 @@
 package rocks.milspecsg.msparties.api;
 
-import org.bson.types.ObjectId;
-import rocks.milspecsg.msparties.model.Dbo;
-
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 public interface CacheInvalidationService<T> {
@@ -17,12 +14,20 @@ public interface CacheInvalidationService<T> {
     /**
      * Add a {@link T} to the cache
      *
+     * Checks whether object is already in cache
+     *
      * @param t {@link T} to put to cache
      * @return {@link Optional} with inserted {@link T} if successfully inserted.
      * Otherwise {@link Optional#empty()}
      */
     Optional<T> put(T t);
 
+    /**
+     * Checks whether object is already in cache
+     *
+     * @param list {@link List<T>} to insert into cache
+     * @return {@link List<T>} containing all {@link T} that were successfully inserted
+     */
     List<T> put(List<T> list);
 
     /**
@@ -43,4 +48,5 @@ public interface CacheInvalidationService<T> {
     List<T> getAll(Predicate<? super T> predicate);
 
     Optional<T> getOne(Predicate<? super T> predicate);
+
 }

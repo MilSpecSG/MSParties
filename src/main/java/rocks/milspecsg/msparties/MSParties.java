@@ -15,6 +15,8 @@ import rocks.milspecsg.msparties.api.config.ConfigurationService;
 import rocks.milspecsg.msparties.commands.party.*;
 import rocks.milspecsg.msparties.model.core.Member;
 import rocks.milspecsg.msparties.model.core.Party;
+import rocks.milspecsg.msparties.service.config.ApiConfigurationService;
+import rocks.milspecsg.msparties.service.config.implementation.MSConfigurationService;
 import rocks.milspecsg.msparties.service.member.ApiMemberRepository;
 import rocks.milspecsg.msparties.service.member.implementation.MSMemberRepository;
 import rocks.milspecsg.msparties.service.party.ApiPartyRepository;
@@ -65,6 +67,7 @@ public class MSParties {
         protected void configure() {
             super.configure();
 
+            bind(new TypeLiteral<ApiConfigurationService>() {}).to(new TypeLiteral<MSConfigurationService>() {});
             bind(new TypeLiteral<ApiPartyRepository<Party, Member>>() {}).to(new TypeLiteral<MSPartyRepository>() {});
             bind(new TypeLiteral<ApiMemberRepository<Member>>() {}).to(new TypeLiteral<MSMemberRepository>() {});
         }

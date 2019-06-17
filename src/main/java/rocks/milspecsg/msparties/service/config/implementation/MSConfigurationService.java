@@ -17,8 +17,7 @@ import java.util.function.Predicate;
 public class MSConfigurationService extends ApiConfigurationService {
 
     @Inject
-    public MSConfigurationService(ConfigurationLoader<CommentedConfigurationNode> configLoader) {
-        super(configLoader);
+    public MSConfigurationService() {
     }
 
     @Override

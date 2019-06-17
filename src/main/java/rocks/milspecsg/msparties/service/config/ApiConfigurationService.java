@@ -24,7 +24,10 @@ import java.util.function.Predicate;
  */
 public abstract class ApiConfigurationService implements ConfigurationService {
 
+    @Inject
+    @DefaultConfig(sharedRoot = false)
     protected ConfigurationLoader<CommentedConfigurationNode> configLoader;
+
     protected CommentedConfigurationNode rootConfigurationNode;
 
     protected Map<Integer, Boolean> defaultBooleanMap;
@@ -61,8 +64,7 @@ public abstract class ApiConfigurationService implements ConfigurationService {
     protected Map<Integer, Class<?>> nodeTypeMap;
 
     @Inject
-    public ApiConfigurationService(@DefaultConfig(sharedRoot = false) ConfigurationLoader<CommentedConfigurationNode> configLoader) {
-        this.configLoader = configLoader;
+    public ApiConfigurationService() {
         Sponge.getServer().getConsole().sendMessage(Text.of(PluginInfo.PluginPrefix, "Loading config"));
         initNodeTypeMap();
         initVerificationMaps();

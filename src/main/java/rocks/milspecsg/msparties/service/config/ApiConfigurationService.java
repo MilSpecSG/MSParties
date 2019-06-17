@@ -22,7 +22,6 @@ import java.util.function.Predicate;
  *
  * @author Cableguy20
  */
-@Singleton
 public abstract class ApiConfigurationService implements ConfigurationService {
 
     protected ConfigurationLoader<CommentedConfigurationNode> configLoader;

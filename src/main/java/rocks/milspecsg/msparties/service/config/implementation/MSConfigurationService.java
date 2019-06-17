@@ -6,12 +6,14 @@ import rocks.milspecsg.msparties.ConfigKeys;
 import rocks.milspecsg.msparties.service.config.ApiConfigurationService;
 
 import javax.inject.Inject;
+import javax.inject.Singleton;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
+@Singleton
 public class MSConfigurationService extends ApiConfigurationService {
 
     @Inject
